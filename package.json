@@ -1,46 +1,40 @@
 {
-  "name": "lightspeed-mcp-server",
+  "name": "@busybee3333/lightspeed-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server for Lightspeed API - 2026 Complete Version",
-  "type": "module",
-  "main": "dist/index.js",
-  "author": "MCPEngage <hello@mcpengage.com>",
+  "description": "Complete MCP server for Lightspeed Retail & Restaurant POS platform with 50+ tools and 15+ React apps",
+  "author": "BusyBee3333",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/BusyBee3333/Lightspeed-MCP-2026-Complete.git"
+  "type": "module",
+  "bin": {
+    "lightspeed-mcp": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc && node build-apps.js",
+    "prepublishOnly": "npm run build",
+    "dev": "tsc --watch",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4"
   },
   "keywords": [
     "mcp",
     "lightspeed",
-    "lightspeed",
-    "api",
-    "ai"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx src/index.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "clean": "rm -rf dist",
-    "rebuild": "npm run clean && npm run build"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0",
-    "zod": "^3.22.4",
-    "dotenv": "^16.3.1"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@types/jest": "^29.5.0",
-    "jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+    "pos",
+    "retail",
+    "restaurant",
+    "point-of-sale",
+    "inventory",
+    "ecommerce"
+  ]
 }

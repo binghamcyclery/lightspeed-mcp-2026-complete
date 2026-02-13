@@ -1,240 +1,344 @@
-> **🚀 Don't want to self-host?** [Join the waitlist for our fully managed solution →](https://mcpengage.com/lightspeed)
-> 
-> Zero setup. Zero maintenance. Just connect and automate.
+# Lightspeed MCP Server
 
----
+Complete Model Context Protocol (MCP) server for Lightspeed Retail and Restaurant POS platforms.
 
-# 🚀 Lightspeed MCP Server — 2026 Complete Version
+## 🚀 Features
 
-## 💡 What This Unlocks
+### 77 Powerful Tools Across All Domains
 
-**This MCP server gives AI direct access to your Lightspeed Retail POS system.** Instead of manually managing sales, inventory, and customer data through the POS interface, you just *tell* the AI what you need — in plain English.
+#### Products & Inventory (17 tools)
+- Full CRUD operations for products/items
+- Advanced product search and filtering
+- Bulk update operations
+- Inventory tracking and adjustments
+- Multi-location inventory management
+- Stock level monitoring and alerts
+- Product variants and matrix management
+- Category management with hierarchy
 
-### 🎯 Retail POS Power Moves
+#### Sales & Transactions (8 tools)
+- Create and manage sales/transactions
+- Process payments (cash, card, check)
+- Sale completion and voiding
+- Refund processing
+- Daily sales summaries
+- Sales by customer, employee, register
 
-The AI can directly control your Lightspeed Retail system with natural language:
+#### Orders & Purchasing (6 tools)
+- Purchase order creation and management
+- Order receiving and fulfillment
+- Vendor ordering workflow
+- Order shipment tracking
 
-1. **Sales Analytics** — "Show me all sales from the last 24 hours broken down by employee and location"
-2. **Inventory Tracking** — "List all items with stock below reorder point and generate a purchase order list"
-3. **Product Management** — "Find all items in the 'Electronics' category and show their current stock levels"
-4. **Customer Intelligence** — "Get all customers who made purchases over $500 in the last month"
-5. **Register Operations** — "Show me register status for all locations and today's cash counts"
+#### Customers (8 tools)
+- Customer database management
+- Advanced customer search
+- Credit account management
+- Store credit operations
+- Customer analytics
 
-### 🔗 The Real Power: Combining Tools
+#### Inventory Management (8 tools)
+- Inventory counts and audits
+- Inter-location transfers
+- Inventory adjustment logs
+- Stock transfer workflow
+- Receiving and shipping
 
-AI can chain multiple Lightspeed operations together in one conversation:
+#### Vendors & Suppliers (5 tools)
+- Vendor management
+- Contact information
+- Ordering preferences
 
-- Query sales data → Filter by employee → Generate performance report
-- Check inventory levels → Identify low stock → Create reorder workflow
-- Pull customer data → Match with purchase history → Generate loyalty insights
-- Analyze category performance → Adjust pricing → Update inventory levels
+#### Employees & Staff (6 tools)
+- Employee management
+- Time tracking
+- Role management
+- Performance tracking
 
-## 📦 What's Inside
+#### Reports & Analytics (5 tools)
+- Sales reports by period
+- Inventory valuation reports
+- Customer analytics
+- Employee performance reports
+- Top-selling products analysis
 
-**8 powerful API tools** covering Lightspeed Retail POS operations:
-- `list_sales` — Browse completed transactions with filters
-- `get_sale` — Get complete sale details with line items and payments
-- `list_items` — Query inventory catalog with advanced filters
-- `get_item` — Get full item details including pricing and stock
-- `update_inventory` — Adjust stock levels for items at specific locations
-- `list_customers` — Browse customer database
-- `list_categories` — View product category hierarchy
-- `get_register` — Get POS terminal information and status
+#### Additional Features (14 tools)
+- Register/POS terminal management
+- Workorder/service management
+- Discount and promotion management
+- Manufacturer/brand management
+- Shop/location management
+- Tax category management
 
-All with proper error handling, automatic authentication, and TypeScript types.
+### 17 React MCP Apps (Dark Theme)
 
-## 🚀 Quick Start
+1. **Dashboard** - Real-time business overview
+2. **Product Manager** - Comprehensive product management
+3. **Inventory Manager** - Stock tracking and transfers
+4. **Sales Terminal** - Quick POS interface
+5. **Customer Manager** - Customer database
+6. **Order Manager** - Purchase orders
+7. **Employee Manager** - Staff management
+8. **Reports Viewer** - Business analytics
+9. **Category Manager** - Product categories
+10. **Vendor Manager** - Supplier management
+11. **Workorder Manager** - Service tickets
+12. **Register Manager** - POS control
+13. **Transfer Manager** - Stock transfers
+14. **Discount Manager** - Promotions
+15. **Analytics Dashboard** - Business intelligence
+16. **Quick Sale** - Fast checkout
+17. **Low Stock Alerts** - Inventory alerts
 
-### Option 1: Claude Desktop (Local)
-
-1. **Clone and build:**
-   ```bash
-   git clone https://github.com/BusyBee3333/Lightspeed-MCP-2026-Complete.git
-   cd lightspeed-mcp-2026-complete
-   npm install
-   npm run build
-   ```
-
-2. **Get your Lightspeed API credentials:**
-   - Log in to Lightspeed Back Office
-   - Go to **Account Settings → API Settings → Generate Token**
-   - Complete OAuth authorization flow
-   - Copy your **Access Token** and **Account ID**
-
-3. **Configure Claude Desktop:**
-   
-   On macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   
-   On Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-   ```json
-   {
-     "mcpServers": {
-       "lightspeed": {
-         "command": "node",
-         "args": ["/ABSOLUTE/PATH/TO/lightspeed-mcp-2026-complete/dist/index.js"],
-         "env": {
-           "LIGHTSPEED_ACCESS_TOKEN": "your-access-token-here",
-           "LIGHTSPEED_ACCOUNT_ID": "your-account-id"
-         }
-       }
-     }
-   }
-   ```
-
-4. **Restart Claude Desktop**
-
-### Option 2: Deploy to Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/lightspeed-mcp)
-
-1. Click the button above
-2. Set your Lightspeed API credentials in Railway dashboard
-3. Use the Railway URL as your MCP server endpoint
-
-### Option 3: Docker
+## 📦 Installation
 
 ```bash
-docker build -t lightspeed-mcp .
-docker run -p 3000:3000 \
-  -e LIGHTSPEED_ACCESS_TOKEN=your-token \
-  -e LIGHTSPEED_ACCOUNT_ID=your-account-id \
-  lightspeed-mcp
+npm install @busybee3333/lightspeed-mcp-server
+```
+
+Or clone and build:
+
+```bash
+git clone https://github.com/BusyBee3333/mcpengine.git
+cd mcpengine/servers/lightspeed
+npm install
+npm run build
 ```
 
 ## 🔐 Authentication
 
-**Lightspeed uses OAuth2 authentication with Access Tokens and Account IDs.**
+Lightspeed uses OAuth2 authentication. You'll need:
 
-**Setup Steps:**
-1. In Lightspeed Back Office: **Account Settings → API Settings**
-2. Click **Generate Token** or create an OAuth application
-3. Complete the OAuth authorization flow
-4. Save these credentials:
-   - **Access Token** — Your OAuth bearer token
-   - **Account ID** — Your Lightspeed account identifier (found in URL: `/Account/{ID}/`)
+1. **Account ID** - Your Lightspeed account number
+2. **Client ID** - OAuth client identifier
+3. **Client Secret** - OAuth client secret
+4. **Access Token** - (after OAuth flow)
+5. **Refresh Token** - (after OAuth flow)
 
-**API Documentation:** https://developers.lightspeedhq.com/retail/introduction/authentication
+### Getting Credentials
 
-**Token Management:**
-- Access tokens expire after 1 hour
-- Use refresh tokens to obtain new access tokens
-- This MCP server requires a valid access token
+#### Lightspeed Retail (R-Series)
+1. Visit [Lightspeed Developer Portal](https://cloud.lightspeedapp.com/developers)
+2. Create a new API application
+3. Note your Client ID and Client Secret
 
-The MCP server handles all API requests automatically using your credentials.
+#### Lightspeed Restaurant (K-Series)
+1. Contact your Lightspeed Account Manager
+2. Request API credentials
+3. Choose trial or production environment
 
-## 🎯 Example Prompts
+### OAuth Flow Example
 
-Once connected to Claude, you can use natural language for retail POS operations:
+```typescript
+import { LightspeedClient } from '@busybee3333/lightspeed-mcp-server';
 
-**Sales Tracking:**
-- *"Show me all completed sales from today"*
-- *"Get sales for employee ID 5 from the last week"*
-- *"List sales over $100 from location 'Downtown Store'"*
+const client = new LightspeedClient({
+  accountId: 'YOUR_ACCOUNT_ID',
+  clientId: 'YOUR_CLIENT_ID',
+  clientSecret: 'YOUR_CLIENT_SECRET',
+  apiType: 'retail', // or 'restaurant'
+  environment: 'production', // or 'trial'
+});
 
-**Inventory Management:**
-- *"Show me all items with quantity on hand below 10"*
-- *"Update inventory for item shop ID 12345 to 50 units"*
-- *"List all items in category 'Apparel' with their stock levels"*
+// 1. Get authorization URL
+const authUrl = await client.getAuthorizationUrl(
+  'https://your-redirect-uri.com/callback',
+  'employee:all', // scope
+  'random-state-string'
+);
 
-**Product Catalog:**
-- *"Get all items with UPC barcode '012345678901'"*
-- *"Show me items from manufacturer 'Apple' with inventory details"*
-- *"List all items that need reordering based on reorder point"*
+// 2. User visits authUrl and authorizes
+// 3. Exchange code for tokens
+const tokens = await client.exchangeCodeForToken(
+  authorizationCode,
+  'https://your-redirect-uri.com/callback'
+);
 
-**Customer Management:**
-- *"Find all customers with last name 'Smith'"*
-- *"Get customers who joined in the last 30 days"*
-- *"List customers with email containing '@gmail.com'"*
+console.log(tokens.access_token);
+console.log(tokens.refresh_token);
+```
 
-**Register Operations:**
-- *"Show me all register terminals at location 'Main St Store'"*
-- *"Get register status and cash count for register ID 3"*
-- *"List all active registers across all locations"*
+## 🚀 Usage
 
-**Analytics & Reporting:**
-- *"Generate a sales report for the last 7 days grouped by category"*
-- *"Show me top-selling items from this month"*
-- *"Export all customer purchase data from Q4 2024"*
+### MCP Server
 
-## 🛠️ Development
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Lightspeed Retail account with API access
-- Valid OAuth access token and account ID
-
-### Setup
+Set environment variables:
 
 ```bash
-git clone https://github.com/BusyBee3333/Lightspeed-MCP-2026-Complete.git
-cd lightspeed-mcp-2026-complete
+export LIGHTSPEED_ACCOUNT_ID="123456"
+export LIGHTSPEED_CLIENT_ID="your-client-id"
+export LIGHTSPEED_CLIENT_SECRET="your-client-secret"
+export LIGHTSPEED_ACCESS_TOKEN="your-access-token"
+export LIGHTSPEED_REFRESH_TOKEN="your-refresh-token"
+export LIGHTSPEED_API_TYPE="retail"  # or "restaurant"
+export LIGHTSPEED_ENVIRONMENT="production"  # or "trial"
+```
+
+Run the server:
+
+```bash
+npx lightspeed-mcp
+```
+
+### Claude Desktop Integration
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "lightspeed": {
+      "command": "npx",
+      "args": ["-y", "@busybee3333/lightspeed-mcp-server"],
+      "env": {
+        "LIGHTSPEED_ACCOUNT_ID": "123456",
+        "LIGHTSPEED_CLIENT_ID": "your-client-id",
+        "LIGHTSPEED_CLIENT_SECRET": "your-secret",
+        "LIGHTSPEED_ACCESS_TOKEN": "your-token",
+        "LIGHTSPEED_REFRESH_TOKEN": "your-refresh",
+        "LIGHTSPEED_API_TYPE": "retail",
+        "LIGHTSPEED_ENVIRONMENT": "production"
+      }
+    }
+  }
+}
+```
+
+### Programmatic Usage
+
+```typescript
+import { LightspeedMCPServer } from '@busybee3333/lightspeed-mcp-server';
+
+const server = new LightspeedMCPServer(
+  'account-id',
+  'client-id',
+  'client-secret',
+  {
+    accessToken: 'your-token',
+    refreshToken: 'your-refresh-token',
+    apiType: 'retail',
+    environment: 'production',
+  }
+);
+
+await server.run();
+```
+
+## 🛠️ Available Tools
+
+### Product Tools
+
+- `lightspeed_list_products` - List all products with filters
+- `lightspeed_get_product` - Get product details
+- `lightspeed_create_product` - Create new product
+- `lightspeed_update_product` - Update product
+- `lightspeed_delete_product` - Archive product
+- `lightspeed_search_products` - Advanced search
+- `lightspeed_bulk_update_products` - Bulk operations
+- `lightspeed_get_product_inventory` - Inventory levels
+- `lightspeed_adjust_product_inventory` - Adjust stock
+
+### Sales Tools
+
+- `lightspeed_list_sales` - List transactions
+- `lightspeed_get_sale` - Get sale details
+- `lightspeed_create_sale` - Create new sale
+- `lightspeed_complete_sale` - Finalize transaction
+- `lightspeed_void_sale` - Void transaction
+- `lightspeed_add_sale_payment` - Add payment
+- `lightspeed_get_daily_sales` - Daily summary
+- `lightspeed_refund_sale` - Process refund
+
+### Customer Tools
+
+- `lightspeed_list_customers` - List all customers
+- `lightspeed_get_customer` - Customer details
+- `lightspeed_create_customer` - New customer
+- `lightspeed_update_customer` - Update customer
+- `lightspeed_delete_customer` - Archive customer
+- `lightspeed_search_customers` - Search customers
+- `lightspeed_get_customer_credit_account` - Store credit
+- `lightspeed_add_customer_credit` - Add credit
+
+### Report Tools
+
+- `lightspeed_sales_report` - Sales analytics
+- `lightspeed_inventory_report` - Stock valuation
+- `lightspeed_customer_report` - Customer analytics
+- `lightspeed_employee_performance_report` - Staff metrics
+- `lightspeed_product_performance_report` - Top sellers
+
+...and 50+ more tools!
+
+## 🌐 React Apps
+
+All apps are built with Vite and feature a modern dark theme. Access them at:
+
+```
+dist/ui/dashboard/index.html
+dist/ui/product-manager/index.html
+dist/ui/sales-terminal/index.html
+...etc
+```
+
+## 🏗️ Development
+
+```bash
+# Install dependencies
 npm install
-cp .env.example .env
-# Edit .env with your Lightspeed credentials
+
+# Build TypeScript
 npm run build
-npm start
+
+# Development mode (watch)
+npm run dev
+
+# Build React apps
+node build-apps.js
 ```
 
-### Testing
+## 📚 API Documentation
 
-```bash
-npm test                  # Run all tests
-npm run test:watch        # Watch mode
-npm run test:coverage     # Coverage report
-```
+### Lightspeed Retail (R-Series)
+- [API Documentation](https://developers.lightspeedhq.com/retail/)
+- Base URL: `https://api.lightspeedapp.com/API/V3`
+- Auth: OAuth2
 
-## 🐛 Troubleshooting
-
-### "Authentication failed"
-- Verify your **Access Token** is current (tokens expire after 1 hour)
-- Check that your **Account ID** matches your Lightspeed account
-- Regenerate your access token if needed
-
-### "Tools not appearing in Claude"
-- Restart Claude Desktop after updating config
-- Check that the path in `claude_desktop_config.json` is **absolute** (not relative)
-- Verify the build completed successfully (`dist/index.js` exists)
-
-### "401 Unauthorized" errors
-- Your access token has likely expired (1-hour lifetime)
-- Use your refresh token to obtain a new access token
-- Update your `.env` or Claude config with the new token
-
-### "Rate limit exceeded"
-- Lightspeed has rate limits: 10 requests/second (burst), 600 requests/minute
-- The server respects rate limits automatically
-- Space out large batch operations
-
-## 📖 Resources
-
-- [Lightspeed Retail API Documentation](https://developers.lightspeedhq.com/retail/)
-- [Lightspeed API Reference](https://developers.lightspeedhq.com/retail/endpoints/)
-- [OAuth Authentication Guide](https://developers.lightspeedhq.com/retail/introduction/authentication/)
-- [MCP Protocol Specification](https://modelcontextprotocol.io/)
-- [Claude Desktop Documentation](https://claude.ai/desktop)
+### Lightspeed Restaurant (K-Series)
+- [API Documentation](https://api-docs.lsk.lightspeed.app/)
+- Base URL: `https://api.lsk.lightspeed.app`
+- Auth: OAuth2 with Basic authentication
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+Contributions welcome! Please:
 
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/amazing-tool`)
-3. Commit your changes (`git commit -m 'Add amazing tool'`)
-4. Push to the branch (`git push origin feature/amazing-tool`)
-5. Open a Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details
+MIT License - see LICENSE file for details
 
-## 🙏 Credits
+## 🆘 Support
 
-Built by [MCPEngage](https://mcpengage.com) — AI infrastructure for business software.
+- GitHub Issues: [BusyBee3333/mcpengine](https://github.com/BusyBee3333/mcpengine/issues)
+- Documentation: [MCP Engine Docs](https://github.com/BusyBee3333/mcpengine)
 
-Want more MCP servers? Check out our [full catalog](https://mcpengage.com) covering 30+ business platforms.
+## 🎯 Roadmap
+
+- [ ] Webhook support for real-time updates
+- [ ] Advanced reporting dashboards
+- [ ] Multi-currency support
+- [ ] E-commerce integration tools
+- [ ] Custom field management
+- [ ] Advanced pricing rules
+- [ ] Loyalty program integration
 
 ---
 
-**Questions?** Open an issue or join our [Discord community](https://discord.gg/mcpengine).
+**Built with ❤️ by BusyBee3333**
+
+Part of the [MCP Engine](https://github.com/BusyBee3333/mcpengine) project - Complete MCP servers for 40+ platforms.
