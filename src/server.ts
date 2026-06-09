@@ -141,16 +141,22 @@ export class LightspeedMCPServer {
       }
 
       if (req.url === '/sse' && req.method === 'GET') {
-        const transport = new SSEServerTransport('/messages', res);
-        transports.set(transport.sessionId, transport);
+  const transport = new SSEServerTransport('/messages', res);
+  transports.set(transport.sessionId, transport);
 
-        res.on('close', () => {
-          transports.delete(transport.sessionId);
-        });
+  res.on('close', () => {
+    transports.delete(transport.sessionId);
+  });
 
-        await this.server.connect(transport);
-        console.error(`Client connected via SSE, session: ${transport.sessionId}`);
-        return;
+  const freshServer = new Server(
+    { name: SERVER_NAME, version: SERVER_VERSION },
+    { capabilities: { tools: {} } }
+  );
+  this.setupHandlersForServer(freshServer);
+  await freshServer.connect(transport);
+  console.error(`Client connected via SSE, session: ${transport.sessionId}`);
+  return;
+}
       }
 
       if (req.url?.startsWith('/messages') && req.method === 'POST') {
