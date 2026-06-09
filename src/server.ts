@@ -124,7 +124,6 @@ export class LightspeedMCPServer {
     const transports: Map<string, SSEServerTransport> = new Map();
 
     const httpServer = http.createServer(async (req, res) => {
-      // Add CORS headers
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -135,18 +134,16 @@ export class LightspeedMCPServer {
         return;
       }
 
-      // Health check endpoint
       if (req.url === '/health' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'ok', tools: this.tools.length }));
         return;
       }
 
-      // SSE endpoint
       if (req.url === '/sse' && req.method === 'GET') {
         const transport = new SSEServerTransport('/messages', res);
         transports.set(transport.sessionId, transport);
-        
+
         res.on('close', () => {
           transports.delete(transport.sessionId);
         });
@@ -156,11 +153,10 @@ export class LightspeedMCPServer {
         return;
       }
 
-      // Messages endpoint
       if (req.url?.startsWith('/messages') && req.method === 'POST') {
         const url = new URL(req.url, `http://localhost:${port}`);
         const sessionId = url.searchParams.get('sessionId');
-        
+
         if (!sessionId || !transports.has(sessionId)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Invalid or missing sessionId' }));
@@ -172,7 +168,6 @@ export class LightspeedMCPServer {
         return;
       }
 
-      // Default 404
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Not found' }));
     });
