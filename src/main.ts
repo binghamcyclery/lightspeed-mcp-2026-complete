@@ -33,13 +33,11 @@ if (accessToken && refreshToken) {
 const port = process.env.PORT;
 
 if (port) {
-  // Running on Railway or other hosted environment - use HTTP/SSE mode
   server.runHttp(parseInt(port)).catch((error) => {
     console.error('Server error:', error);
     process.exit(1);
   });
 } else {
-  // Running locally - use stdio mode
   server.run().catch((error) => {
     console.error('Server error:', error);
     process.exit(1);
