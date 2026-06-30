@@ -112,21 +112,17 @@ async function fetchAllData() {
   allEmployees.forEach(e => { empNames[e.employeeID] = `${e.firstName} ${e.lastName}`.trim(); });
 
   const hoursMap = {};
-  await Promise.all(allEmployees.map(async e => {
-    if (SKIP_EMPLOYEES.some(s => empNames[e.employeeID]?.includes(s))) return;
-    try {
-      const res = await getSingle(`/Employee/${e.employeeID}/EmployeeHours.json?startDate=${mtdStart}&endDate=${today}`);
-      const entries = res.EmployeeHours ? (Array.isArray(res.EmployeeHours) ? res.EmployeeHours : [res.EmployeeHours]) : [];
-      if (!hoursMap[e.employeeID]) hoursMap[e.employeeID] = {};
-      entries.forEach(entry => {
-        const sid = entry.shopID;
-        if (!hoursMap[e.employeeID][sid]) hoursMap[e.employeeID][sid] = 0;
-        if (entry.checkIn && entry.checkOut) {
-          const hrs = (new Date(entry.checkOut) - new Date(entry.checkIn)) / 3600000;
-          if (hrs > 0) hoursMap[e.employeeID][sid] += hrs;
-        }
-      });
-    } catch(err) {}
+  await Promise.all(SHOPS.map(async shop => {
+    const entries = await getPaginated(`/EmployeeHours.json?shopID=${shop.shopID}&checkIn=%3E,${mtdStart}T00:00:00&limit=100`);
+    entries.forEach(entry => {
+      const eid = entry.employeeID;
+      const sid = entry.shopID;
+      if (!eid || !entry.checkIn || !entry.checkOut) return;
+      if (!hoursMap[eid]) hoursMap[eid] = {};
+      if (!hoursMap[eid][sid]) hoursMap[eid][sid] = 0;
+      const hrs = (new Date(entry.checkOut) - new Date(entry.checkIn)) / 3600000;
+      if (hrs > 0 && hrs < 24) hoursMap[eid][sid] += hrs;
+    });
   }));
 
   const shopResults = await Promise.all(SHOPS.map(shop => processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth)));
