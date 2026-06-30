@@ -207,9 +207,9 @@ async function getLCR(shopID, startDate, endDate) {
 const fmt = n => '$' + Math.round(n).toLocaleString();
 const pct = (n, t) => t ? Math.min(100, Math.round(n/t*100)) : 0;
 const fmtHrs = h => h > 0 ? h.toFixed(1) + 'h' : '—';
-const goalColor = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 85 ? '#16a34a' : p >= 75 ? '#ca8a04' : '#dc2626'; };
-const goalBg = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 85 ? '#f0fdf4' : p >= 75 ? '#fefce8' : '#fef2f2'; };
-const goalBorder = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 85 ? '#bbf7d0' : p >= 75 ? '#fef08a' : '#fecaca'; };
+const goalColor = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? "#16a34a" : p >= 80 ? "#ca8a04" : "#dc2626"; };
+const goalBg = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? "#f0fdf4" : p >= 80 ? "#fefce8" : "#fef2f2"; };
+const goalBorder = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? "#bbf7d0" : p >= 80 ? "#fef08a" : "#fecaca"; };
 
 function bar(val, goal) {
   const p = pct(val, goal);
@@ -246,16 +246,16 @@ function buildHTML(data) {
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-      <div style="background:${goalBg(totalYtdRev,totalRevGoal)};border:0.5px solid ${goalBorder(totalYtdRev,totalRevGoal)};border-radius:8px;padding:12px 14px">
+      <div style="background:${goalBg(totalYtdRev,totalRevGoal*12)};border:0.5px solid ${goalBorder(totalYtdRev,totalRevGoal*12)};border-radius:8px;padding:12px 14px">
         <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company YTD Revenue</div>
-        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdRev,totalRevGoal)}">${fmt(totalYtdRev)}</div>
-        <div style="font-size:11px;color:#64748b">of ${fmt(totalRevGoal)} annual goal · ${pct(totalYtdRev,totalRevGoal)}%</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdRev,totalRevGoal*12)}">${fmt(totalYtdRev)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalRevGoal * 12)} annual goal · ${pct(totalYtdRev,totalRevGoal*12)}%</div>
         ${bar(totalYtdRev,totalRevGoal)}
       </div>
-      <div style="background:${goalBg(totalYtdMar,totalMarGoal)};border:0.5px solid ${goalBorder(totalYtdMar,totalMarGoal)};border-radius:8px;padding:12px 14px">
+      <div style="background:${goalBg(totalYtdMar,totalMarGoal*12)};border:0.5px solid ${goalBorder(totalYtdMar,totalMarGoal*12)};border-radius:8px;padding:12px 14px">
         <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company YTD Margin</div>
-        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdMar,totalMarGoal)}">${fmt(totalYtdMar)}</div>
-        <div style="font-size:11px;color:#64748b">of ${fmt(totalMarGoal)} annual goal · ${pct(totalYtdMar,totalMarGoal)}%</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdMar,totalMarGoal*12)}">${fmt(totalYtdMar)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalMarGoal * 12)} annual goal · ${pct(totalYtdMar,totalMarGoal*12)}%</div>
         ${bar(totalYtdMar,totalMarGoal)}
       </div>
     </div>`;
@@ -264,10 +264,10 @@ function buildHTML(data) {
     <div style="flex:1;min-width:150px;background:${goalBg(s.ytdRev,s.goals.revGoal)};border:0.5px solid ${goalBorder(s.ytdRev,s.goals.revGoal)};border-radius:8px;padding:10px 14px">
       <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">${s.name}</div>
       <div style="font-size:15px;font-weight:500;color:${goalColor(s.ytdRev,s.goals.revGoal)}">${fmt(s.ytdRev)}</div>
-      <div style="font-size:11px;color:#64748b">YTD Rev · Goal ${fmt(s.goals.revGoal)} · ${pct(s.ytdRev,s.goals.revGoal)}%</div>
+      <div style="font-size:11px;color:#64748b">YTD Rev · Goal ${fmt(s.goals.revGoal*12)} · ${pct(s.ytdRev,s.goals.revGoal*12)}%</div>
       ${bar(s.ytdRev,s.goals.revGoal)}
       <div style="font-size:13px;font-weight:500;color:${goalColor(s.ytdMar,s.goals.marginGoal)};margin-top:4px">${fmt(s.ytdMar)}</div>
-      <div style="font-size:11px;color:#64748b">YTD Margin · Goal ${fmt(s.goals.marginGoal)} · ${pct(s.ytdMar,s.goals.marginGoal)}%</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal ${fmt(s.goals.marginGoal*12)} · ${pct(s.ytdMar,s.goals.marginGoal*12)}%</div>
       ${bar(s.ytdMar,s.goals.marginGoal)}
     </div>`).join('');
 
