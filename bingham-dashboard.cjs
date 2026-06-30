@@ -207,9 +207,231 @@ async function getLCR(shopID, startDate, endDate) {
   };
 }
 
-const fmt = n => '$' + Math.round(n).toLocaleString();
+const fmt = n => '
+
+function bar(val, goal) {
+  const p = pct(val, goal);
+  const barColor = goalColor(val, goal);
+  return `<div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:${p}%;background:${barColor};border-radius:3px"></div></div>`;
+}
+
+function medal(i) { return i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ''; }
+
+function buildHTML(data) {
+  const { shops, companyLeaderboard, fetchedAt, daysLeft, daysInMonth, dayOfMonth } = data;
+  const nextRefresh = new Date(lastFetch + 15*60*1000).toLocaleTimeString('en-US', { timeZone: 'America/Denver', hour: 'numeric', minute: '2-digit', hour12: true });
+
+  const totalMtdRev = shops.reduce((s,x) => s+x.mtdRev, 0);
+  const totalMtdMar = shops.reduce((s,x) => s+x.mtdMar, 0);
+  const totalYtdRev = shops.reduce((s,x) => s+x.ytdRev, 0);
+  const totalYtdMar = shops.reduce((s,x) => s+x.ytdMar, 0);
+  const totalRevGoal = shops.reduce((s,x) => s+x.goals.revGoal, 0);
+  const totalYtdRevGoal = totalRevGoal;
+  const totalYtdMarGoal = shops.reduce((s,x) => s+x.goals.marginGoal, 0);
+  const totalMarGoal = shops.reduce((s,x) => s+x.goals.marginGoal, 0);
+
+  const ytdRevGoal = shops.reduce((s,x) => s+x.goals.revGoal, 0) * (dayOfMonth/daysInMonth) * 12;
+  const totalYtdRevGoal = shops.reduce((s,x) => s+x.goals.revGoal, 0);
+  const totalYtdMarGoal = shops.reduce((s,x) => s+x.goals.marginGoal, 0);
+
+  const locationChips = shops.map(s => `
+    <div style="flex:1;min-width:150px;background:${goalBg(s.ytdRev, s.goals.revGoal)};border:0.5px solid ${goalBorder(s.ytdRev, s.goals.revGoal)};border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">${s.name}</div>
+      <div style="font-size:15px;font-weight:500;color:${goalColor(s.ytdRev, s.goals.revGoal)}">${fmt(s.ytdRev)}</div>
+      <div style="font-size:11px;color:#64748b">YTD Rev · Goal ${fmt(s.goals.revGoal)} · ${pct(s.ytdRev, s.goals.revGoal)}%</div>
+      <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:4px 0">
+        <div style="height:100%;width:${Math.min(100,pct(s.ytdRev,s.goals.revGoal))}%;background:${goalColor(s.ytdRev,s.goals.revGoal)};border-radius:2px"></div>
+      </div>
+      <div style="font-size:13px;font-weight:500;color:${goalColor(s.ytdMar, s.goals.marginGoal)};margin-top:4px">${fmt(s.ytdMar)}</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal ${fmt(s.goals.marginGoal)} · ${pct(s.ytdMar, s.goals.marginGoal)}%</div>
+    </div>`).join('');
+
+  const shopCards = shops.map(s => {
+    const gapRev = Math.max(0, s.goals.revGoal - s.mtdRev);
+    const gapLcr = Math.max(0, s.goals.lcrGoal - s.lcr.total);
+    const dailyRev = daysLeft > 0 ? gapRev / daysLeft : 0;
+    const dailyLcr = daysLeft > 0 ? gapLcr / daysLeft : 0;
+    const revPct = pct(s.mtdRev, s.goals.revGoal);
+    const marPct = pct(s.mtdMar, s.goals.marginGoal);
+    const lcrPct = pct(s.lcr.total, s.goals.lcrGoal);
+
+    return `
+    <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+      <div style="font-size:17px;font-weight:500;color:#0f172a;margin-bottom:14px">${s.name}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Revenue MTD</div>
+          <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.mtdRev)}</div>
+          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.revGoal)} · ${revPct}%</div>
+          ${bar(s.mtdRev, s.goals.revGoal)}
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Margin MTD</div>
+          <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.mtdMar)}</div>
+          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.marginGoal)} · ${marPct}%</div>
+          ${bar(s.mtdMar, s.goals.marginGoal)}
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">LCR MTD</div>
+          <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.lcr.total)}</div>
+          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.lcrGoal)} · ${lcrPct}%</div>
+          ${bar(s.lcr.total, s.goals.lcrGoal)}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:8px;padding:10px 14px">
+          <div style="font-size:11px;color:#1d4ed8;margin-bottom:2px">Gap to revenue goal</div>
+          <div style="font-size:16px;font-weight:500;color:#1d4ed8">${fmt(gapRev)}</div>
+          <div style="font-size:11px;color:#2563eb">Need ${fmt(dailyRev)}/day · ${daysLeft} days left</div>
+        </div>
+        <div style="background:#faf5ff;border:0.5px solid #e9d5ff;border-radius:8px;padding:10px 14px">
+          <div style="font-size:11px;color:#7e22ce;margin-bottom:2px">Gap to LCR goal</div>
+          <div style="font-size:16px;font-weight:500;color:#7e22ce">${fmt(gapLcr)}</div>
+          <div style="font-size:11px;color:#9333ea">Need ${fmt(dailyLcr)}/day</div>
+        </div>
+        <div style="background:#fff7ed;border:0.5px solid #fed7aa;border-radius:8px;padding:10px 14px">
+          <div style="font-size:11px;color:#c2410c;margin-bottom:2px">YTD Revenue</div>
+          <div style="font-size:16px;font-weight:500;color:#c2410c">${fmt(s.ytdRev)}</div>
+          <div style="font-size:11px;color:#ea580c">YTD Margin ${fmt(s.ytdMar)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const leaderboardRows = companyLeaderboard.map((e, i) => `
+    <tr style="border-top:0.5px solid #f1f5f9${i < 3 ? ';background:#fafbff' : ''}">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a">${medal(i)} ${i+1}. ${e.name}</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">${e.locationLabel}</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">${fmt(e.revenue)}</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">${e.sales}</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">${fmtHrs(e.hours)}</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">${e.hours >= 1 ? fmt(e.salesPerHour)+'/hr' : '—'}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="900">
+<title>Bingham Cyclery — Live Dashboard</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}</style>
+</head>
+<body>
+<div style="max-width:960px;margin:0 auto">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <div>
+      <div style="font-size:21px;font-weight:500;color:#0f172a">Bingham Cyclery</div>
+      <div style="font-size:12px;color:#94a3b8">Live performance · June 2026 · Refreshes every 15 min</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:12px;color:#94a3b8">Updated ${fetchedAt} · Next ~${nextRefresh}</div>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">${daysLeft} days left in month</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:16px 20px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">All locations — June MTD</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${locationChips}</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+      <div style="background:${goalBg(totalMtdRev,totalRevGoal)};border:0.5px solid ${goalBorder(totalMtdRev,totalRevGoal)};border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Company MTD Revenue</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalMtdRev,totalRevGoal)}">${fmt(totalMtdRev)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalRevGoal)} goal · ${pct(totalMtdRev,totalRevGoal)}%</div>
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:5px 0">
+          <div style="height:100%;width:${Math.min(100,pct(totalMtdRev,totalRevGoal))}%;background:${goalColor(totalMtdRev,totalRevGoal)};border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="background:${goalBg(totalMtdMar,totalMarGoal)};border:0.5px solid ${goalBorder(totalMtdMar,totalMarGoal)};border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Company MTD Margin</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalMtdMar,totalMarGoal)}">${fmt(totalMtdMar)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalMarGoal)} goal · ${pct(totalMtdMar,totalMarGoal)}%</div>
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:5px 0">
+          <div style="height:100%;width:${Math.min(100,pct(totalMtdMar,totalMarGoal))}%;background:${goalColor(totalMtdMar,totalMarGoal)};border-radius:2px"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;border-top:0.5px solid #f1f5f9;padding-top:12px">
+      <div style="background:${goalBg(totalYtdRev,totalYtdRevGoal)};border:0.5px solid ${goalBorder(totalYtdRev,totalYtdRevGoal)};border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Company YTD Revenue</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdRev,totalYtdRevGoal)}">${fmt(totalYtdRev)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalYtdRevGoal)} annual goal · ${pct(totalYtdRev,totalYtdRevGoal)}%</div>
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:5px 0">
+          <div style="height:100%;width:${Math.min(100,pct(totalYtdRev,totalYtdRevGoal))}%;background:${goalColor(totalYtdRev,totalYtdRevGoal)};border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="background:${goalBg(totalYtdMar,totalYtdMarGoal)};border:0.5px solid ${goalBorder(totalYtdMar,totalYtdMarGoal)};border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Company YTD Margin</div>
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdMar,totalYtdMarGoal)}">${fmt(totalYtdMar)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalYtdMarGoal)} annual goal · ${pct(totalYtdMar,totalYtdMarGoal)}%</div>
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:5px 0">
+          <div style="height:100%;width:${Math.min(100,pct(totalYtdMar,totalYtdMarGoal))}%;background:${goalColor(totalYtdMar,totalYtdMarGoal)};border-radius:2px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  ${shopCards}
+
+  <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:500;color:#0f172a;margin-bottom:14px">Company Leaderboard — June MTD</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="background:#f8fafc">
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Employee</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Location</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Tickets</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Hours</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">$/hr</th>
+        </tr>
+      </thead>
+      <tbody>${leaderboardRows || '<tr><td colspan="6" style="padding:12px;color:#94a3b8;font-size:13px">No data</td></tr>'}</tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>`;
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.url !== '/' && req.url !== '/dashboard') { res.writeHead(404); res.end('Not found'); return; }
+  try {
+    const stale = !cachedData || (Date.now() - lastFetch > 15 * 60 * 1000);
+    if (stale) await fetchAllData();
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(buildHTML(cachedData));
+  } catch(err) {
+    console.error(err);
+    res.writeHead(500);
+    res.end(`<pre style="padding:20px">Error: ${err.message}\n\n${err.stack}</pre>`);
+  }
+});
+
+server.listen(CONFIG.port, () => {
+  console.log(`Dashboard running at http://localhost:${CONFIG.port}`);
+  fetchAllData().catch(console.error);
+});
+
+setInterval(() => { fetchAllData().catch(console.error); }, 15 * 60 * 1000);
+// Thu Jun 25 21:26:47 MDT 2026
+ + Math.round(n).toLocaleString();
 const pct = (n, t) => t ? Math.min(100, Math.round(n/t*100)) : 0;
 const fmtHrs = h => h > 0 ? h.toFixed(1) + 'h' : '—';
+const goalColor = (n, t) => {
+  const p = t ? (n/t*100) : 0;
+  return p >= 85 ? '#16a34a' : p >= 75 ? '#ca8a04' : '#dc2626';
+};
+const goalBg = (n, t) => {
+  const p = t ? (n/t*100) : 0;
+  return p >= 85 ? '#f0fdf4' : p >= 75 ? '#fefce8' : '#fef2f2';
+};
+const goalBorder = (n, t) => {
+  const p = t ? (n/t*100) : 0;
+  return p >= 85 ? '#bbf7d0' : p >= 75 ? '#fef08a' : '#fecaca';
+};
 
 function bar(val, goal, color) {
   const p = pct(val, goal);
@@ -255,19 +477,19 @@ function buildHTML(data) {
           <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Revenue MTD</div>
           <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.mtdRev)}</div>
           <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.revGoal)} · ${revPct}%</div>
-          ${bar(s.mtdRev, s.goals.revGoal, '#3b82f6')}
+          ${bar(s.mtdRev, s.goals.revGoal)}
         </div>
         <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Margin MTD</div>
           <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.mtdMar)}</div>
           <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.marginGoal)} · ${marPct}%</div>
-          ${bar(s.mtdMar, s.goals.marginGoal, '#10b981')}
+          ${bar(s.mtdMar, s.goals.marginGoal)}
         </div>
         <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">LCR MTD</div>
           <div style="font-size:19px;font-weight:500;color:#0f172a">${fmt(s.lcr.total)}</div>
           <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.lcrGoal)} · ${lcrPct}%</div>
-          ${bar(s.lcr.total, s.goals.lcrGoal, '#f59e0b')}
+          ${bar(s.lcr.total, s.goals.lcrGoal)}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
