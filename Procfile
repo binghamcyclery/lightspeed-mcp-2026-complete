@@ -1,1 +1,1 @@
-web: node dashboard-server.cjs
+web: node bingham-dashboard.cjs
