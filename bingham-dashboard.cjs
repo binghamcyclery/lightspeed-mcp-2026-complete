@@ -207,7 +207,7 @@ async function getLCR(shopID, startDate, endDate) {
   };
 }
 
-const fmt = n => '
+const fmt = n => '$' + Math.round(n).toLocaleString();
 
 function bar(val, goal) {
   const p = pct(val, goal);
@@ -601,4 +601,3 @@ server.listen(CONFIG.port, () => {
 
 setInterval(() => { fetchAllData().catch(console.error); }, 15 * 60 * 1000);
 // Thu Jun 25 21:26:47 MDT 2026
-// cache bust Tue Jun 30 12:41:56 MDT 2026
