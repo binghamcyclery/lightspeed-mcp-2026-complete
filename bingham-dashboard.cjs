@@ -9,8 +9,6 @@ const CONFIG = {
   port: process.env.PORT || 3001,
 };
 
-// Monthly revenue goals Jan-Dec from FY26 budget
-// SLC June updated to $135,000 per Michelle; July updated to $160,000
 const MONTHLY_REV_GOALS = {
   '5': [14000,9000,50000,138000,155000,225000,225000,225000,165000,78000,50000,16000],
   '7': [12000,12000,71000,100000,104000,135000,160000,145000,135000,74000,47000,55000],
@@ -106,7 +104,7 @@ async function fetchAllData() {
   const ytdStart = `${now.getFullYear()}-01-01`;
   const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const dayOfMonth = now.getDate();
-  const daysLeft = daysInMonth - dayOfMonth;
+  const daysLeft = daysInMonth - dayOfMonth + 1;
   const currentMonth = now.getMonth() + 1;
 
   const allEmployees = await getPaginated(`/Employee.json?limit=100`);
@@ -133,25 +131,23 @@ async function fetchAllData() {
 
   const shopResults = await Promise.all(SHOPS.map(shop => processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth)));
 
-  const allEmpStats = [];
+  // Build company leaderboard from line-level employee attribution
+  const allEmpStats = {};
   shopResults.forEach(s => {
-    s.employees.forEach(e => {
-      const existing = allEmpStats.find(x => x.employeeID === e.employeeID);
-      if (existing) {
-        existing.revenue += e.revenue;
-        existing.hours += e.hours;
-        existing.sales += e.sales;
-        existing.locations.push(s.name);
-      } else {
-        allEmpStats.push({ ...e, locations: [s.name] });
+    s.lineEmployees.forEach(e => {
+      if (!allEmpStats[e.employeeID]) {
+        allEmpStats[e.employeeID] = { employeeID: e.employeeID, name: e.name, revenue: 0, sales: 0, hours: 0, locations: [] };
       }
+      allEmpStats[e.employeeID].revenue += e.revenue;
+      allEmpStats[e.employeeID].sales += e.sales;
+      allEmpStats[e.employeeID].hours += hoursMap[e.employeeID] ? Object.values(hoursMap[e.employeeID]).reduce((a,b) => a+b, 0) : 0;
+      if (!allEmpStats[e.employeeID].locations.includes(s.name)) allEmpStats[e.employeeID].locations.push(s.name);
     });
   });
-  allEmpStats.forEach(e => {
-    e.salesPerHour = e.hours >= 1 ? e.revenue / e.hours : 0;
-    e.locationLabel = e.locations.join(' · ');
-  });
-  const companyLeaderboard = allEmpStats.filter(e => e.revenue > 0).sort((a, b) => b.revenue - a.revenue);
+  const companyLeaderboard = Object.values(allEmpStats)
+    .map(e => ({ ...e, salesPerHour: e.hours >= 1 ? e.revenue / e.hours : 0, locationLabel: e.locations.join(' · ') }))
+    .filter(e => e.revenue > 0)
+    .sort((a, b) => b.revenue - a.revenue);
 
   cachedData = {
     shops: shopResults, companyLeaderboard,
@@ -165,10 +161,7 @@ async function fetchAllData() {
 
 async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth) {
   const goals = getGoals(shop.shopID, currentMonth);
-
-  // Use completeTime filter to avoid pulling modified old sales
   const mtdEnd = today + 'T23:59:59';
-  const ytdEnd = today + 'T23:59:59';
 
   const [mtdSales, ytdSales] = await Promise.all([
     getPaginated(`/Sale.json?shopID=${shop.shopID}&completed=true&completeTime=%3E,${mtdStart}T00:00:00&limit=100`),
@@ -177,7 +170,7 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
 
   const filterEnd = (sales, end) => sales.filter(s => (s.completeTime||s.createTime) <= end);
   const mtd = filterEnd(mtdSales, mtdEnd);
-  const ytd = filterEnd(ytdSales, ytdEnd);
+  const ytd = filterEnd(ytdSales, mtdEnd);
 
   const rev = sales => sales.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0), 0);
   const mar = sales => sales.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0) - parseFloat(x.calcAvgCost||0), 0);
@@ -185,37 +178,54 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
   const mtdRev = rev(mtd), ytdRev = rev(ytd);
   const mtdMar = mar(mtd), ytdMar = mar(ytd);
 
+  // Pull sale lines for line-level employee attribution
+  const mtdSaleIDs = mtd.map(s => s.saleID);
+  const allLines = [];
+  for (let i = 0; i < mtdSaleIDs.length; i += BATCH) {
+    const batch = mtdSaleIDs.slice(i, i + BATCH).join(',');
+    const res = await httpsGet(`${base()}/SaleLine.json?saleID=IN,[${batch}]&limit=100`);
+    const key = Object.keys(res).find(k => k !== '@attributes');
+    if (key && res[key]) { const items = Array.isArray(res[key]) ? res[key] : [res[key]]; allLines.push(...items.filter(Boolean)); }
+  }
+
+  // Build employee stats from line-level attribution
   const empMap = {};
-  mtd.forEach(s => {
-    const eid = s.employeeID;
+  allLines.forEach(line => {
+    const eid = line.employeeID;
     if (!eid || eid === '0') return;
     const name = empNames[eid] || `Emp ${eid}`;
     if (SKIP_EMPLOYEES.some(sk => name.includes(sk))) return;
+    const lineRev = parseFloat(line.calcSubtotal||0) - parseFloat(line.calcLineDiscount||0) - parseFloat(line.calcTransactionDiscount||0);
+    if (lineRev <= 0) return;
     if (!empMap[eid]) empMap[eid] = { employeeID: eid, name, sales: 0, revenue: 0 };
     empMap[eid].sales++;
-    empMap[eid].revenue += parseFloat(s.calcSubtotal||0) - parseFloat(s.calcDiscount||0);
+    empMap[eid].revenue += lineRev;
   });
 
-  const employees = Object.values(empMap).map(e => {
+  const lineEmployees = Object.values(empMap).map(e => {
     const shopHrs = hoursMap[e.employeeID]?.[shop.shopID] || 0;
     return { ...e, hours: shopHrs, salesPerHour: shopHrs >= 1 ? e.revenue / shopHrs : 0 };
   }).sort((a,b) => b.revenue - a.revenue);
 
-  const lcr = await getLCR(shop.shopID, mtdStart, today);
-  return { name: shop.name, shopID: shop.shopID, goals, mtdRev, ytdRev, mtdMar, ytdMar, lcr, employees, daysLeft };
+  const lcr = await getLCR(shop.shopID, mtdStart, today, allLines);
+  return { name: shop.name, shopID: shop.shopID, goals, mtdRev, ytdRev, mtdMar, ytdMar, lcr, lineEmployees, daysLeft };
 }
 
-async function getLCR(shopID, startDate, endDate) {
-  const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&completeTime=%3E,${startDate}T00:00:00&limit=100`);
-  const filtered = sales.filter(s => (s.completeTime||s.createTime) <= endDate + 'T23:59:59');
-  if (!filtered.length) return { labor: 0, components: 0, rubber: 0, total: 0 };
-  const saleIDs = filtered.map(s => s.saleID);
-  const allLines = [];
-  for (let i = 0; i < saleIDs.length; i += BATCH) {
-    const batch = saleIDs.slice(i, i + BATCH).join(',');
-    const res = await httpsGet(`${base()}/SaleLine.json?saleID=IN,[${batch}]&limit=100`);
-    const key = Object.keys(res).find(k => k !== '@attributes');
-    if (key && res[key]) { const items = Array.isArray(res[key]) ? res[key] : [res[key]]; allLines.push(...items); }
+async function getLCR(shopID, startDate, endDate, existingLines) {
+  // Reuse already-fetched lines if available, otherwise fetch
+  let allLines = existingLines;
+  if (!allLines) {
+    const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&completeTime=%3E,${startDate}T00:00:00&limit=100`);
+    const filtered = sales.filter(s => (s.completeTime||s.createTime) <= endDate + 'T23:59:59');
+    if (!filtered.length) return { labor: 0, components: 0, rubber: 0, total: 0 };
+    const saleIDs = filtered.map(s => s.saleID);
+    allLines = [];
+    for (let i = 0; i < saleIDs.length; i += BATCH) {
+      const batch = saleIDs.slice(i, i + BATCH).join(',');
+      const res = await httpsGet(`${base()}/SaleLine.json?saleID=IN,[${batch}]&limit=100`);
+      const key = Object.keys(res).find(k => k !== '@attributes');
+      if (key && res[key]) { const items = Array.isArray(res[key]) ? res[key] : [res[key]]; allLines.push(...items); }
+    }
   }
   const uniqueItemIDs = [...new Set(allLines.map(l => l.itemID).filter(Boolean))];
   const itemDeptMap = {};
@@ -240,10 +250,25 @@ const fmtHrs = h => h > 0 ? h.toFixed(1) + 'h' : '—';
 const goalColor  = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#16a34a' : p >= 90 ? '#ca8a04' : '#dc2626'; };
 const goalBg     = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#f0fdf4' : p >= 90 ? '#fefce8' : '#fef2f2'; };
 const goalBorder = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#bbf7d0' : p >= 90 ? '#fef08a' : '#fecaca'; };
+const hitGoal    = (n, t) => t && n >= t;
 
 function bar(val, goal) {
   const p = Math.min(100, pct(val, goal));
   return `<div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:${p}%;background:${goalColor(val,goal)};border-radius:3px"></div></div>`;
+}
+
+function metricBadge(val, goal, label) {
+  const hit = hitGoal(val, goal);
+  return `
+    <div style="background:#f8fafc;border-radius:8px;padding:10px 12px${hit ? ';border:1.5px solid #16a34a;background:#f0fdf4' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+        <div style="font-size:11px;color:#94a3b8">${label}</div>
+        ${hit ? '<div style="font-size:10px;font-weight:600;color:#16a34a;background:#dcfce7;padding:1px 6px;border-radius:10px">🎯 GOAL!</div>' : ''}
+      </div>
+      <div style="font-size:19px;font-weight:500;color:${goalColor(val,goal)}">${fmt(val)}</div>
+      <div style="font-size:11px;color:#94a3b8">Goal ${fmt(goal)} · ${pct(val,goal)}%</div>
+      ${bar(val,goal)}
+    </div>`;
 }
 
 function medal(i) { return i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ''; }
@@ -305,6 +330,9 @@ function buildHTML(data) {
     </div>`).join('');
 
   const shopCards = shops.map(s => {
+    const revHit = hitGoal(s.mtdRev, s.goals.mtdRevGoal);
+    const marHit = hitGoal(s.mtdMar, s.goals.mtdMarGoal);
+    const anyHit = revHit || marHit;
     const gapRev = Math.max(0, s.goals.mtdRevGoal - s.mtdRev);
     const gapMar = Math.max(0, s.goals.mtdMarGoal - s.mtdMar);
     const gapLcr = Math.max(0, s.goals.mtdLcrGoal - s.lcr.total);
@@ -313,33 +341,21 @@ function buildHTML(data) {
     const dailyLcr = daysLeft > 0 ? gapLcr / daysLeft : 0;
 
     return `
-    <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
-      <div style="font-size:17px;font-weight:500;color:#0f172a;margin-bottom:14px">${s.name}</div>
+    <div style="background:#fff;border:${anyHit ? '2px solid #16a34a' : '0.5px solid #e2e8f0'};border-radius:14px;padding:20px 24px;margin-bottom:16px${anyHit ? ';background:linear-gradient(135deg,#f0fdf4 0%,#fff 60%)' : ''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="font-size:17px;font-weight:500;color:#0f172a">${anyHit ? '🏆 ' : ''}${s.name}</div>
+        ${revHit && marHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Revenue & Margin Goals Hit! 🎯</div>' : revHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Revenue Goal Hit! 🎯</div>' : marHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Margin Goal Hit! 🎯</div>' : ''}
+      </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
-        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Revenue MTD</div>
-          <div style="font-size:19px;font-weight:500;color:${goalColor(s.mtdRev,s.goals.mtdRevGoal)}">${fmt(s.mtdRev)}</div>
-          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.mtdRevGoal)} · ${pct(s.mtdRev,s.goals.mtdRevGoal)}%</div>
-          ${bar(s.mtdRev,s.goals.mtdRevGoal)}
-        </div>
-        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Margin MTD</div>
-          <div style="font-size:19px;font-weight:500;color:${goalColor(s.mtdMar,s.goals.mtdMarGoal)}">${fmt(s.mtdMar)}</div>
-          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.mtdMarGoal)} · ${pct(s.mtdMar,s.goals.mtdMarGoal)}%</div>
-          ${bar(s.mtdMar,s.goals.mtdMarGoal)}
-        </div>
-        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">LCR MTD</div>
-          <div style="font-size:19px;font-weight:500;color:${goalColor(s.lcr.total,s.goals.mtdLcrGoal)}">${fmt(s.lcr.total)}</div>
-          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.mtdLcrGoal)} · ${pct(s.lcr.total,s.goals.mtdLcrGoal)}%</div>
-          ${bar(s.lcr.total,s.goals.mtdLcrGoal)}
-        </div>
+        ${metricBadge(s.mtdRev, s.goals.mtdRevGoal, 'Revenue MTD')}
+        ${metricBadge(s.mtdMar, s.goals.mtdMarGoal, 'Margin MTD')}
+        ${metricBadge(s.lcr.total, s.goals.mtdLcrGoal, 'LCR MTD')}
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         <div style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:8px;padding:10px 14px">
           <div style="font-size:11px;color:#1d4ed8;margin-bottom:2px">Gap to revenue goal</div>
           <div style="font-size:16px;font-weight:500;color:#1d4ed8">${fmt(gapRev)}</div>
-          <div style="font-size:11px;color:#2563eb">Need ${fmt(dailyRev)}/day · ${daysLeft} days left</div>
+          <div style="font-size:11px;color:#2563eb">Need ${fmt(dailyRev)}/day · ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left</div>
         </div>
         <div style="background:#faf5ff;border:0.5px solid #e9d5ff;border-radius:8px;padding:10px 14px">
           <div style="font-size:11px;color:#7e22ce;margin-bottom:2px">Gap to margin goal</div>
@@ -372,7 +388,12 @@ function buildHTML(data) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="900">
 <title>Bingham Cyclery — Live Dashboard</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}</style>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.goal-pulse{animation:pulse 2s ease-in-out infinite}
+</style>
 </head>
 <body>
 <div style="max-width:960px;margin:0 auto">
@@ -383,7 +404,7 @@ function buildHTML(data) {
     </div>
     <div style="text-align:right">
       <div style="font-size:12px;color:#94a3b8">Updated ${fetchedAt} · Next ~${nextRefresh}</div>
-      <div style="font-size:12px;color:#64748b;margin-top:2px">${daysLeft} days left in month</div>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in month</div>
     </div>
   </div>
   <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:16px 20px;margin-bottom:16px">
@@ -401,7 +422,7 @@ function buildHTML(data) {
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Employee</th>
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Location</th>
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
-          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Tickets</th>
+          <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Lines</th>
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Hours</th>
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">$/hr</th>
         </tr>
