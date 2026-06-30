@@ -9,12 +9,14 @@ const CONFIG = {
   port: process.env.PORT || 3001,
 };
 
+// Monthly revenue goals Jan-Dec from FY26 budget
+// SLC June updated to $135,000 per Michelle; July updated to $160,000
 const MONTHLY_REV_GOALS = {
   '5': [14000,9000,50000,138000,155000,225000,225000,225000,165000,78000,50000,16000],
-  '7': [12000,12000,71000,100000,104000,150000,145000,145000,135000,74000,47000,55000],
+  '7': [12000,12000,71000,100000,104000,135000,160000,145000,135000,74000,47000,55000],
   '9': [23480,34144,86350,102994,123964,144068,130000,125000,120000,70000,60000,60000],
 };
-const ANNUAL_NET_GOALS = { '5': 67516, '7': 26541, '9': 42260 };
+const MARGIN_PCT = 0.42;
 const ANNUAL_LCR_GOALS = { '5': 738000, '7': 486000, '9': 594000 };
 
 function getGoals(shopID, month) {
@@ -22,13 +24,13 @@ function getGoals(shopID, month) {
   const annualRev = rev.reduce((s,v) => s+v, 0);
   const mtdRevGoal = rev[month-1];
   const ytdRevGoal = rev.slice(0, month).reduce((s,v) => s+v, 0);
-  const annualNetGoal = ANNUAL_NET_GOALS[shopID];
+  const mtdMarGoal = Math.round(mtdRevGoal * MARGIN_PCT);
+  const ytdMarGoal = Math.round(ytdRevGoal * MARGIN_PCT);
+  const annualMarGoal = Math.round(annualRev * MARGIN_PCT);
   const annualLcrGoal = ANNUAL_LCR_GOALS[shopID];
-  const mtdNetGoal = Math.round(annualNetGoal * mtdRevGoal / annualRev);
-  const ytdNetGoal = Math.round(annualNetGoal * ytdRevGoal / annualRev);
   const mtdLcrGoal = Math.round(annualLcrGoal * mtdRevGoal / annualRev);
   const ytdLcrGoal = Math.round(annualLcrGoal * ytdRevGoal / annualRev);
-  return { mtdRevGoal, ytdRevGoal, annualRev, mtdNetGoal, ytdNetGoal, annualNetGoal, mtdLcrGoal, ytdLcrGoal, annualLcrGoal };
+  return { mtdRevGoal, ytdRevGoal, annualRev, mtdMarGoal, ytdMarGoal, annualMarGoal, mtdLcrGoal, ytdLcrGoal, annualLcrGoal };
 }
 
 const SHOPS = [
@@ -164,14 +166,18 @@ async function fetchAllData() {
 async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth) {
   const goals = getGoals(shop.shopID, currentMonth);
 
+  // Use completeTime filter to avoid pulling modified old sales
+  const mtdEnd = today + 'T23:59:59';
+  const ytdEnd = today + 'T23:59:59';
+
   const [mtdSales, ytdSales] = await Promise.all([
-    getPaginated(`/Sale.json?shopID=${shop.shopID}&completed=true&timeStamp=%3E,${mtdStart}&limit=100`),
-    getPaginated(`/Sale.json?shopID=${shop.shopID}&completed=true&timeStamp=%3E,${ytdStart}&limit=100`),
+    getPaginated(`/Sale.json?shopID=${shop.shopID}&completed=true&completeTime=%3E,${mtdStart}T00:00:00&limit=100`),
+    getPaginated(`/Sale.json?shopID=${shop.shopID}&completed=true&completeTime=%3E,${ytdStart}T00:00:00&limit=100`),
   ]);
 
-  const filterEnd = (sales, end) => sales.filter(s => (s.completeTime||s.createTime) <= end + 'T23:59:59');
-  const mtd = filterEnd(mtdSales, today);
-  const ytd = filterEnd(ytdSales, today);
+  const filterEnd = (sales, end) => sales.filter(s => (s.completeTime||s.createTime) <= end);
+  const mtd = filterEnd(mtdSales, mtdEnd);
+  const ytd = filterEnd(ytdSales, ytdEnd);
 
   const rev = sales => sales.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0), 0);
   const mar = sales => sales.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0) - parseFloat(x.calcAvgCost||0), 0);
@@ -200,7 +206,7 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
 }
 
 async function getLCR(shopID, startDate, endDate) {
-  const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&timeStamp=%3E,${startDate}&limit=100`);
+  const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&completeTime=%3E,${startDate}T00:00:00&limit=100`);
   const filtered = sales.filter(s => (s.completeTime||s.createTime) <= endDate + 'T23:59:59');
   if (!filtered.length) return { labor: 0, components: 0, rubber: 0, total: 0 };
   const saleIDs = filtered.map(s => s.saleID);
@@ -231,12 +237,12 @@ async function getLCR(shopID, startDate, endDate) {
 const fmt = n => '$' + Math.round(n).toLocaleString();
 const pct = (n, t) => t ? Math.min(100, Math.round(n/t*100)) : 0;
 const fmtHrs = h => h > 0 ? h.toFixed(1) + 'h' : '—';
-const goalColor  = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? '#16a34a' : p >= 80 ? '#ca8a04' : '#dc2626'; };
-const goalBg     = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? '#f0fdf4' : p >= 80 ? '#fefce8' : '#fef2f2'; };
-const goalBorder = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 92 ? '#bbf7d0' : p >= 80 ? '#fef08a' : '#fecaca'; };
+const goalColor  = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#16a34a' : p >= 90 ? '#ca8a04' : '#dc2626'; };
+const goalBg     = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#f0fdf4' : p >= 90 ? '#fefce8' : '#fef2f2'; };
+const goalBorder = (n, t) => { const p = t ? (n/t*100) : 0; return p >= 100 ? '#bbf7d0' : p >= 90 ? '#fef08a' : '#fecaca'; };
 
 function bar(val, goal) {
-  const p = pct(val, goal);
+  const p = Math.min(100, pct(val, goal));
   return `<div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:${p}%;background:${goalColor(val,goal)};border-radius:3px"></div></div>`;
 }
 
@@ -251,11 +257,11 @@ function buildHTML(data) {
   const totalYtdRev     = shops.reduce((s,x) => s+x.ytdRev, 0);
   const totalYtdMar     = shops.reduce((s,x) => s+x.ytdMar, 0);
   const totalMtdRevGoal = shops.reduce((s,x) => s+x.goals.mtdRevGoal, 0);
-  const totalMtdNetGoal = shops.reduce((s,x) => s+x.goals.mtdNetGoal, 0);
+  const totalMtdMarGoal = shops.reduce((s,x) => s+x.goals.mtdMarGoal, 0);
   const totalYtdRevGoal = shops.reduce((s,x) => s+x.goals.ytdRevGoal, 0);
-  const totalYtdNetGoal = shops.reduce((s,x) => s+x.goals.ytdNetGoal, 0);
+  const totalYtdMarGoal = shops.reduce((s,x) => s+x.goals.ytdMarGoal, 0);
   const totalAnnualRev  = shops.reduce((s,x) => s+x.goals.annualRev, 0);
-  const totalAnnualNet  = shops.reduce((s,x) => s+x.goals.annualNetGoal, 0);
+  const totalAnnualMar  = shops.reduce((s,x) => s+x.goals.annualMarGoal, 0);
 
   const companyTotals = `
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px">
@@ -265,11 +271,11 @@ function buildHTML(data) {
         <div style="font-size:11px;color:#64748b">of ${fmt(totalMtdRevGoal)} goal · ${pct(totalMtdRev,totalMtdRevGoal)}%</div>
         ${bar(totalMtdRev,totalMtdRevGoal)}
       </div>
-      <div style="background:${goalBg(totalMtdMar,totalMtdNetGoal)};border:0.5px solid ${goalBorder(totalMtdMar,totalMtdNetGoal)};border-radius:8px;padding:12px 14px">
+      <div style="background:${goalBg(totalMtdMar,totalMtdMarGoal)};border:0.5px solid ${goalBorder(totalMtdMar,totalMtdMarGoal)};border-radius:8px;padding:12px 14px">
         <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company MTD Margin</div>
-        <div style="font-size:22px;font-weight:500;color:${goalColor(totalMtdMar,totalMtdNetGoal)}">${fmt(totalMtdMar)}</div>
-        <div style="font-size:11px;color:#64748b">of ${fmt(totalMtdNetGoal)} goal · ${pct(totalMtdMar,totalMtdNetGoal)}%</div>
-        ${bar(totalMtdMar,totalMtdNetGoal)}
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalMtdMar,totalMtdMarGoal)}">${fmt(totalMtdMar)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalMtdMarGoal)} goal · ${pct(totalMtdMar,totalMtdMarGoal)}%</div>
+        ${bar(totalMtdMar,totalMtdMarGoal)}
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
@@ -279,11 +285,11 @@ function buildHTML(data) {
         <div style="font-size:11px;color:#64748b">of ${fmt(totalYtdRevGoal)} YTD goal · ${pct(totalYtdRev,totalYtdRevGoal)}% · Annual: ${fmt(totalAnnualRev)}</div>
         ${bar(totalYtdRev,totalYtdRevGoal)}
       </div>
-      <div style="background:${goalBg(totalYtdMar,totalYtdNetGoal)};border:0.5px solid ${goalBorder(totalYtdMar,totalYtdNetGoal)};border-radius:8px;padding:12px 14px">
+      <div style="background:${goalBg(totalYtdMar,totalYtdMarGoal)};border:0.5px solid ${goalBorder(totalYtdMar,totalYtdMarGoal)};border-radius:8px;padding:12px 14px">
         <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company YTD Margin</div>
-        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdMar,totalYtdNetGoal)}">${fmt(totalYtdMar)}</div>
-        <div style="font-size:11px;color:#64748b">of ${fmt(totalYtdNetGoal)} YTD goal · ${pct(totalYtdMar,totalYtdNetGoal)}% · Annual: ${fmt(totalAnnualNet)}</div>
-        ${bar(totalYtdMar,totalYtdNetGoal)}
+        <div style="font-size:22px;font-weight:500;color:${goalColor(totalYtdMar,totalYtdMarGoal)}">${fmt(totalYtdMar)}</div>
+        <div style="font-size:11px;color:#64748b">of ${fmt(totalYtdMarGoal)} YTD goal · ${pct(totalYtdMar,totalYtdMarGoal)}% · Annual: ${fmt(totalAnnualMar)}</div>
+        ${bar(totalYtdMar,totalYtdMarGoal)}
       </div>
     </div>`;
 
@@ -293,14 +299,14 @@ function buildHTML(data) {
       <div style="font-size:15px;font-weight:500;color:${goalColor(s.ytdRev,s.goals.ytdRevGoal)}">${fmt(s.ytdRev)}</div>
       <div style="font-size:11px;color:#64748b">YTD Rev · Goal ${fmt(s.goals.ytdRevGoal)} · ${pct(s.ytdRev,s.goals.ytdRevGoal)}%</div>
       ${bar(s.ytdRev,s.goals.ytdRevGoal)}
-      <div style="font-size:13px;font-weight:500;color:${goalColor(s.ytdMar,s.goals.ytdNetGoal)};margin-top:4px">${fmt(s.ytdMar)}</div>
-      <div style="font-size:11px;color:#64748b">YTD Margin · Goal ${fmt(s.goals.ytdNetGoal)} · ${pct(s.ytdMar,s.goals.ytdNetGoal)}%</div>
-      ${bar(s.ytdMar,s.goals.ytdNetGoal)}
+      <div style="font-size:13px;font-weight:500;color:${goalColor(s.ytdMar,s.goals.ytdMarGoal)};margin-top:4px">${fmt(s.ytdMar)}</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal ${fmt(s.goals.ytdMarGoal)} · ${pct(s.ytdMar,s.goals.ytdMarGoal)}%</div>
+      ${bar(s.ytdMar,s.goals.ytdMarGoal)}
     </div>`).join('');
 
   const shopCards = shops.map(s => {
     const gapRev = Math.max(0, s.goals.mtdRevGoal - s.mtdRev);
-    const gapMar = Math.max(0, s.goals.mtdNetGoal - s.mtdMar);
+    const gapMar = Math.max(0, s.goals.mtdMarGoal - s.mtdMar);
     const gapLcr = Math.max(0, s.goals.mtdLcrGoal - s.lcr.total);
     const dailyRev = daysLeft > 0 ? gapRev / daysLeft : 0;
     const dailyMar = daysLeft > 0 ? gapMar / daysLeft : 0;
@@ -318,9 +324,9 @@ function buildHTML(data) {
         </div>
         <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">Margin MTD</div>
-          <div style="font-size:19px;font-weight:500;color:${goalColor(s.mtdMar,s.goals.mtdNetGoal)}">${fmt(s.mtdMar)}</div>
-          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.mtdNetGoal)} · ${pct(s.mtdMar,s.goals.mtdNetGoal)}%</div>
-          ${bar(s.mtdMar,s.goals.mtdNetGoal)}
+          <div style="font-size:19px;font-weight:500;color:${goalColor(s.mtdMar,s.goals.mtdMarGoal)}">${fmt(s.mtdMar)}</div>
+          <div style="font-size:11px;color:#94a3b8">Goal ${fmt(s.goals.mtdMarGoal)} · ${pct(s.mtdMar,s.goals.mtdMarGoal)}%</div>
+          ${bar(s.mtdMar,s.goals.mtdMarGoal)}
         </div>
         <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;color:#94a3b8;margin-bottom:1px">LCR MTD</div>
