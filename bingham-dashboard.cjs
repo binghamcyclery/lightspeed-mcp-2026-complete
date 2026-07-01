@@ -760,17 +760,47 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Serve snapshot files
+  // Serve snapshot files — fetch from GitHub to survive redeploys
   if (url.startsWith('/snapshots/')) {
     const key = url.replace('/snapshots/', '');
+    // Try local first
     const file = path.join(SNAPSHOT_DIR, `${key}.html`);
     if (fs.existsSync(file)) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(fs.readFileSync(file, 'utf8'));
-    } else {
-      res.writeHead(404);
-      res.end(`<p style="padding:20px;font-family:sans-serif">Snapshot not found: ${key}</p>`);
+      return;
     }
+    // Fall back to GitHub
+    const ghPath = `/repos/${CONFIG.githubRepo}/contents/snapshots/${key}.html`;
+    const ghReq = https.request({
+      hostname: 'api.github.com',
+      path: ghPath,
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CONFIG.githubToken}`, 'User-Agent': 'bingham-dashboard', Accept: 'application/vnd.github.v3+json' }
+    }, ghRes => {
+      let body = '';
+      ghRes.on('data', d => body += d);
+      ghRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (parsed.content) {
+            const html = Buffer.from(parsed.content, 'base64').toString('utf8');
+            // Cache locally
+            try { fs.writeFileSync(file, html); } catch(e) {}
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(html);
+          } else {
+            res.writeHead(404);
+            res.end(`<p style="padding:20px;font-family:sans-serif">Snapshot not found: ${key}</p>`);
+          }
+        } catch(e) {
+          res.writeHead(404);
+          res.end(`<p style="padding:20px;font-family:sans-serif">Snapshot not found: ${key}</p>`);
+        }
+      });
+    });
+    ghReq.on('error', () => { res.writeHead(500); res.end('Error fetching snapshot'); });
+    ghReq.end();
     return;
   }
 
