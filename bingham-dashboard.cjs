@@ -111,19 +111,21 @@ async function fetchAllData() {
   const empNames = {};
   allEmployees.forEach(e => { empNames[e.employeeID] = `${e.firstName} ${e.lastName}`.trim(); });
 
-  const hoursMap = {};
-  await Promise.all(SHOPS.map(async shop => {
-    const entries = await getPaginated(`/EmployeeHours.json?shopID=${shop.shopID}&checkIn=%3E,${mtdStart}T00:00:00&limit=100`);
-    entries.forEach(entry => {
-      const eid = entry.employeeID;
-      const sid = entry.shopID;
-      if (!eid || !entry.checkIn || !entry.checkOut) return;
-      if (!hoursMap[eid]) hoursMap[eid] = {};
-      if (!hoursMap[eid][sid]) hoursMap[eid][sid] = 0;
-      const hrs = (new Date(entry.checkOut) - new Date(entry.checkIn)) / 3600000;
-      if (hrs > 0 && hrs < 24) hoursMap[eid][sid] += hrs;
-    });
-  }));
+  const hoursMap = {}; // { employeeID: { shopID: hours } }
+  const hoursTotal = {}; // { employeeID: totalHours } across all shops
+  const allHourEntries = await getPaginated(`/EmployeeHours.json?checkIn=%3E,${mtdStart}T00:00:00&limit=100`);
+  allHourEntries.forEach(entry => {
+    const eid = entry.employeeID;
+    const sid = entry.shopID;
+    if (!eid || !entry.checkIn || !entry.checkOut) return;
+    const hrs = (new Date(entry.checkOut) - new Date(entry.checkIn)) / 3600000;
+    if (hrs <= 0 || hrs >= 24) return;
+    if (!hoursMap[eid]) hoursMap[eid] = {};
+    if (!hoursMap[eid][sid]) hoursMap[eid][sid] = 0;
+    hoursMap[eid][sid] += hrs;
+    if (!hoursTotal[eid]) hoursTotal[eid] = 0;
+    hoursTotal[eid] += hrs;
+  });
 
   const shopResults = await Promise.all(SHOPS.map(shop => processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth)));
 
@@ -136,9 +138,12 @@ async function fetchAllData() {
       }
       allEmpStats[e.employeeID].revenue += e.revenue;
       allEmpStats[e.employeeID].sales += e.sales;
-      allEmpStats[e.employeeID].hours += hoursMap[e.employeeID] ? Object.values(hoursMap[e.employeeID]).reduce((a,b) => a+b, 0) : 0;
       if (!allEmpStats[e.employeeID].locations.includes(s.name)) allEmpStats[e.employeeID].locations.push(s.name);
     });
+  });
+  // Apply total hours from hoursTotal (not per-shop to avoid double counting)
+  Object.values(allEmpStats).forEach(e => {
+    e.hours = hoursTotal[e.employeeID] || 0;
   });
   const companyLeaderboard = Object.values(allEmpStats)
     .map(e => ({ ...e, salesPerHour: e.hours >= 1 ? e.revenue / e.hours : 0, locationLabel: e.locations.join(' · ') }))
