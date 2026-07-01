@@ -9,7 +9,7 @@ const CONFIG = {
   clientSecret: '4d9f9f49df751a2a626e8cc651799bdf0fc2ba158b784dd757e970fc041b78ad',
   refreshToken: '4ea58ba56220463d52ebd7c868124588a8abbd53',
   port: process.env.PORT || 3001,
-  githubToken: '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',
+  githubToken: process.env.GITHUB_TOKEN || '',
   githubRepo: 'binghamcyclery/lightspeed-mcp-2026-complete',
 };
 
