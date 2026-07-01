@@ -17,18 +17,19 @@ const MONTHLY_REV_GOALS = {
 const MARGIN_PCT = 0.42;
 const ANNUAL_LCR_GOALS = { '5': 738000, '7': 486000, '9': 594000 };
 
-function getGoals(shopID, month) {
+function getGoals(shopID, month, rolloverRev, rolloverMar) {
   const rev = MONTHLY_REV_GOALS[shopID];
   const annualRev = rev.reduce((s,v) => s+v, 0);
-  const mtdRevGoal = rev[month-1];
-  const ytdRevGoal = rev.slice(0, month).reduce((s,v) => s+v, 0);
+  const baseMtdRevGoal = rev[month-1];
+  const mtdRevGoal = baseMtdRevGoal + (rolloverRev || 0);
+  const ytdRevGoal = rev.slice(0, month).reduce((s,v) => s+v, 0) + (rolloverRev || 0);
   const mtdMarGoal = Math.round(mtdRevGoal * MARGIN_PCT);
   const ytdMarGoal = Math.round(ytdRevGoal * MARGIN_PCT);
   const annualMarGoal = Math.round(annualRev * MARGIN_PCT);
   const annualLcrGoal = ANNUAL_LCR_GOALS[shopID];
-  const mtdLcrGoal = Math.round(annualLcrGoal * mtdRevGoal / annualRev);
-  const ytdLcrGoal = Math.round(annualLcrGoal * ytdRevGoal / annualRev);
-  return { mtdRevGoal, ytdRevGoal, annualRev, mtdMarGoal, ytdMarGoal, annualMarGoal, mtdLcrGoal, ytdLcrGoal, annualLcrGoal };
+  const mtdLcrGoal = Math.round(annualLcrGoal * baseMtdRevGoal / annualRev);
+  const ytdLcrGoal = Math.round(annualLcrGoal * rev.slice(0, month).reduce((s,v) => s+v, 0) / annualRev);
+  return { mtdRevGoal, ytdRevGoal, annualRev, mtdMarGoal, ytdMarGoal, annualMarGoal, mtdLcrGoal, ytdLcrGoal, annualLcrGoal, rolloverRev: rolloverRev||0, rolloverMar: rolloverMar||0 };
 }
 
 const SHOPS = [
@@ -93,6 +94,18 @@ async function getSingle(path) {
   return res;
 }
 
+async function getLastMonthData(shopID, lastMonthStart, lastMonthEnd, lastMonth) {
+  const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&completeTime=%3E,${lastMonthStart}T00:00:00&limit=100`);
+  const filtered = sales.filter(s => (s.completeTime||s.createTime) <= lastMonthEnd + 'T23:59:59');
+  const rev = filtered.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0), 0);
+  const mar = filtered.reduce((s,x) => s + parseFloat(x.calcSubtotal||0) - parseFloat(x.calcDiscount||0) - parseFloat(x.calcAvgCost||0), 0);
+  const baseRevGoal = MONTHLY_REV_GOALS[shopID][lastMonth-1];
+  const baseMarGoal = Math.round(baseRevGoal * MARGIN_PCT);
+  const rolloverRev = Math.max(0, baseRevGoal - rev);
+  const rolloverMar = Math.max(0, baseMarGoal - mar);
+  return { rev, mar, baseRevGoal, baseMarGoal, rolloverRev, rolloverMar };
+}
+
 async function fetchAllData() {
   console.log('[' + new Date().toLocaleTimeString() + '] Fetching dashboard data...');
   await getToken();
@@ -107,12 +120,27 @@ async function fetchAllData() {
   const daysLeft = daysInMonth - dayOfMonth + 1;
   const currentMonth = now.getMonth() + 1;
 
-  const allEmployees = await getPaginated(`/Employee.json?limit=100`);
-  const empNames = {};
-  allEmployees.forEach(e => { empNames[e.employeeID] = `${e.firstName} ${e.lastName}`.trim(); });
+  // Last month dates
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const lastMonth = lastMonthDate.getMonth() + 1;
+  const lastMonthYear = lastMonthDate.getFullYear();
+  const lastMonthStart = `${lastMonthYear}-${pad(lastMonth)}-01`;
+  const lastMonthEnd = `${lastMonthYear}-${pad(lastMonth)}-${new Date(lastMonthYear, lastMonth, 0).getDate()}`;
 
-  const hoursMap = {}; // { employeeID: { shopID: hours } }
-  const hoursTotal = {}; // { employeeID: totalHours } across all shops
+  // Fetch last month data and rollover for each shop
+  const lastMonthResults = await Promise.all(SHOPS.map(shop => getLastMonthData(shop.shopID, lastMonthStart, lastMonthEnd, lastMonth)));
+  const rolloverByShop = {};
+  SHOPS.forEach((shop, i) => {
+    rolloverByShop[shop.shopID] = {
+      rolloverRev: lastMonthResults[i].rolloverRev,
+      rolloverMar: lastMonthResults[i].rolloverMar,
+      lastMonth: lastMonthResults[i],
+    };
+  });
+
+  // Fetch hours
+  const hoursMap = {};
+  const hoursTotal = {};
   const allHourEntries = await getPaginated(`/EmployeeHours.json?checkIn=%3E,${mtdStart}T00:00:00&limit=100`);
   allHourEntries.forEach(entry => {
     const eid = entry.employeeID;
@@ -127,9 +155,16 @@ async function fetchAllData() {
     hoursTotal[eid] += hrs;
   });
 
-  const shopResults = await Promise.all(SHOPS.map(shop => processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth)));
+  const allEmployees = await getPaginated(`/Employee.json?limit=100`);
+  const empNames = {};
+  allEmployees.forEach(e => { empNames[e.employeeID] = `${e.firstName} ${e.lastName}`.trim(); });
 
-  // Build company leaderboard from line-level employee attribution
+  const shopResults = await Promise.all(SHOPS.map(shop => {
+    const { rolloverRev, rolloverMar } = rolloverByShop[shop.shopID];
+    return processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth, rolloverRev, rolloverMar);
+  }));
+
+  // Company leaderboard
   const allEmpStats = {};
   shopResults.forEach(s => {
     s.lineEmployees.forEach(e => {
@@ -141,17 +176,16 @@ async function fetchAllData() {
       if (!allEmpStats[e.employeeID].locations.includes(s.name)) allEmpStats[e.employeeID].locations.push(s.name);
     });
   });
-  // Apply total hours from hoursTotal (not per-shop to avoid double counting)
-  Object.values(allEmpStats).forEach(e => {
-    e.hours = hoursTotal[e.employeeID] || 0;
-  });
+  Object.values(allEmpStats).forEach(e => { e.hours = hoursTotal[e.employeeID] || 0; });
   const companyLeaderboard = Object.values(allEmpStats)
     .map(e => ({ ...e, salesPerHour: e.hours >= 1 ? e.revenue / e.hours : 0, locationLabel: e.locations.join(' · ') }))
     .filter(e => e.revenue > 0)
     .sort((a, b) => b.revenue - a.revenue);
 
+  const lastMonthName = new Date(lastMonthYear, lastMonth-1, 1).toLocaleString('en-US', { month: 'long' });
+
   cachedData = {
-    shops: shopResults, companyLeaderboard,
+    shops: shopResults, companyLeaderboard, rolloverByShop, lastMonthResults, lastMonthName,
     fetchedAt: new Date().toLocaleString('en-US', { timeZone: 'America/Denver', hour: 'numeric', minute: '2-digit', hour12: true }),
     daysLeft, dayOfMonth, daysInMonth, today, currentMonth,
   };
@@ -160,8 +194,8 @@ async function fetchAllData() {
   return cachedData;
 }
 
-async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth) {
-  const goals = getGoals(shop.shopID, currentMonth);
+async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth, rolloverRev, rolloverMar) {
+  const goals = getGoals(shop.shopID, currentMonth, rolloverRev, rolloverMar);
   const mtdEnd = today + 'T23:59:59';
 
   const [mtdSales, ytdSales] = await Promise.all([
@@ -179,7 +213,6 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
   const mtdRev = rev(mtd), ytdRev = rev(ytd);
   const mtdMar = mar(mtd), ytdMar = mar(ytd);
 
-  // Pull sale lines for line-level employee attribution
   const mtdSaleIDs = mtd.map(s => s.saleID);
   const allLines = [];
   for (let i = 0; i < mtdSaleIDs.length; i += BATCH) {
@@ -189,7 +222,6 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
     if (key && res[key]) { const items = Array.isArray(res[key]) ? res[key] : [res[key]]; allLines.push(...items.filter(Boolean)); }
   }
 
-  // Build employee stats from line-level attribution
   const empMap = {};
   allLines.forEach(line => {
     const eid = line.employeeID;
@@ -208,26 +240,12 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
     return { ...e, hours: shopHrs, salesPerHour: shopHrs >= 1 ? e.revenue / shopHrs : 0 };
   }).sort((a,b) => b.revenue - a.revenue);
 
-  const lcr = await getLCR(shop.shopID, mtdStart, today, allLines);
+  const lcr = await getLCR(allLines);
   return { name: shop.name, shopID: shop.shopID, goals, mtdRev, ytdRev, mtdMar, ytdMar, lcr, lineEmployees, daysLeft };
 }
 
-async function getLCR(shopID, startDate, endDate, existingLines) {
-  // Reuse already-fetched lines if available, otherwise fetch
-  let allLines = existingLines;
-  if (!allLines) {
-    const sales = await getPaginated(`/Sale.json?shopID=${shopID}&completed=true&completeTime=%3E,${startDate}T00:00:00&limit=100`);
-    const filtered = sales.filter(s => (s.completeTime||s.createTime) <= endDate + 'T23:59:59');
-    if (!filtered.length) return { labor: 0, components: 0, rubber: 0, total: 0 };
-    const saleIDs = filtered.map(s => s.saleID);
-    allLines = [];
-    for (let i = 0; i < saleIDs.length; i += BATCH) {
-      const batch = saleIDs.slice(i, i + BATCH).join(',');
-      const res = await httpsGet(`${base()}/SaleLine.json?saleID=IN,[${batch}]&limit=100`);
-      const key = Object.keys(res).find(k => k !== '@attributes');
-      if (key && res[key]) { const items = Array.isArray(res[key]) ? res[key] : [res[key]]; allLines.push(...items); }
-    }
-  }
+async function getLCR(allLines) {
+  if (!allLines || !allLines.length) return { labor: 0, components: 0, rubber: 0, total: 0 };
   const uniqueItemIDs = [...new Set(allLines.map(l => l.itemID).filter(Boolean))];
   const itemDeptMap = {};
   for (let i = 0; i < uniqueItemIDs.length; i += BATCH) {
@@ -275,7 +293,7 @@ function metricBadge(val, goal, label) {
 function medal(i) { return i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ''; }
 
 function buildHTML(data) {
-  const { shops, companyLeaderboard, fetchedAt, daysLeft, daysInMonth, dayOfMonth } = data;
+  const { shops, companyLeaderboard, fetchedAt, daysLeft, daysInMonth, dayOfMonth, lastMonthResults, lastMonthName, rolloverByShop } = data;
   const nextRefresh = new Date(lastFetch + 15*60*1000).toLocaleTimeString('en-US', { timeZone: 'America/Denver', hour: 'numeric', minute: '2-digit', hour12: true });
 
   const totalMtdRev     = shops.reduce((s,x) => s+x.mtdRev, 0);
@@ -330,6 +348,22 @@ function buildHTML(data) {
       ${bar(s.ytdMar,s.goals.ytdMarGoal)}
     </div>`).join('');
 
+  // Last month chips
+  const lastMonthChips = SHOPS.map((shop, i) => {
+    const lm = lastMonthResults[i];
+    return `
+    <div style="flex:1;min-width:150px;background:${goalBg(lm.rev,lm.baseRevGoal)};border:0.5px solid ${goalBorder(lm.rev,lm.baseRevGoal)};border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">${shop.name}</div>
+      <div style="font-size:15px;font-weight:500;color:${goalColor(lm.rev,lm.baseRevGoal)}">${fmt(lm.rev)}</div>
+      <div style="font-size:11px;color:#64748b">Rev · Goal ${fmt(lm.baseRevGoal)} · ${pct(lm.rev,lm.baseRevGoal)}%</div>
+      ${bar(lm.rev,lm.baseRevGoal)}
+      <div style="font-size:13px;font-weight:500;color:${goalColor(lm.mar,lm.baseMarGoal)};margin-top:4px">${fmt(lm.mar)}</div>
+      <div style="font-size:11px;color:#64748b">Margin · Goal ${fmt(lm.baseMarGoal)} · ${pct(lm.mar,lm.baseMarGoal)}%</div>
+      ${bar(lm.mar,lm.baseMarGoal)}
+      ${lm.rolloverRev > 0 ? `<div style="font-size:10px;color:#dc2626;margin-top:4px">↪ ${fmt(lm.rolloverRev)} rolled to ${new Date().toLocaleString('en-US',{month:'long'})}</div>` : '<div style="font-size:10px;color:#16a34a;margin-top:4px">✓ Goal met — no rollover</div>'}
+    </div>`;
+  }).join('');
+
   const shopCards = shops.map(s => {
     const revHit = hitGoal(s.mtdRev, s.goals.mtdRevGoal);
     const marHit = hitGoal(s.mtdMar, s.goals.mtdMarGoal);
@@ -340,12 +374,14 @@ function buildHTML(data) {
     const dailyRev = daysLeft > 0 ? gapRev / daysLeft : 0;
     const dailyMar = daysLeft > 0 ? gapMar / daysLeft : 0;
     const dailyLcr = daysLeft > 0 ? gapLcr / daysLeft : 0;
+    const rollover = rolloverByShop[s.shopID];
 
     return `
     <div style="background:#fff;border:${anyHit ? '2px solid #16a34a' : '0.5px solid #e2e8f0'};border-radius:14px;padding:20px 24px;margin-bottom:16px${anyHit ? ';background:linear-gradient(135deg,#f0fdf4 0%,#fff 60%)' : ''}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <div style="font-size:17px;font-weight:500;color:#0f172a">${anyHit ? '🏆 ' : ''}${s.name}</div>
         ${revHit && marHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Revenue & Margin Goals Hit! 🎯</div>' : revHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Revenue Goal Hit! 🎯</div>' : marHit ? '<div style="font-size:11px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px">Margin Goal Hit! 🎯</div>' : ''}
+        ${rollover && rollover.rolloverRev > 0 ? `<div style="font-size:10px;color:#dc2626;background:#fef2f2;padding:2px 8px;border-radius:10px">↪ ${fmt(rollover.rolloverRev)} rollover included</div>` : ''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
         ${metricBadge(s.mtdRev, s.goals.mtdRevGoal, 'Revenue MTD')}
@@ -389,12 +425,7 @@ function buildHTML(data) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="900">
 <title>Bingham Cyclery — Live Dashboard</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
-.goal-pulse{animation:pulse 2s ease-in-out infinite}
-</style>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}</style>
 </head>
 <body>
 <div style="max-width:960px;margin:0 auto">
@@ -413,6 +444,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     ${companyTotals}
     <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 12px">By Location — YTD</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">${locationChips}</div>
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 12px">${lastMonthName} Final</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${lastMonthChips}</div>
   </div>
   ${shopCards}
   <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
@@ -428,7 +461,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">$/hr</th>
         </tr>
       </thead>
-      <tbody>${leaderboardRows || '<tr><td colspan="6" style="padding:12px;color:#94a3b8;font-size:13px">No data</td></tr>'}</tbody>
+      <tbody>${leaderboardRows || '<tr><td colspan="6" style="padding:12px;color:#94a3b8;font-size:13px">No data yet this month</td></tr>'}</tbody>
     </table>
   </div>
 </div>
