@@ -98,12 +98,20 @@ function getWeekGoals(shopID, year, month, goals) {
 
 // Matched on employee ID rather than name — names in Lightspeed get edited, IDs don't.
 const EMP_ONLINE_SALES = '281';        // "Online Sales zInternet"
-const EMP_MICHELLE_SCHMID = '213';     // web orders are hers, so credit them to her
-const REASSIGN_EMPLOYEE = { [EMP_ONLINE_SALES]: EMP_MICHELLE_SCHMID };
+const EMP_MICHELLE_SCHMID = '213';
+const EMP_ANGELA_WRIGHT = '207';
+// Web orders are credited to whoever owns that channel, which differs by shop:
+// the employer program is Angela's, everything else is Michelle's.
+const ONLINE_SALES_CREDIT = { '1': EMP_ANGELA_WRIGHT };
+const ONLINE_SALES_CREDIT_DEFAULT = EMP_MICHELLE_SCHMID;
 const SKIP_EMPLOYEE_IDS = [
   '270',  // Partner Logins
   '379',  // Client Services RetailToolkit
 ];
+
+// 7-Mobility is the employer program. It has no revenue goals and gets no shop card,
+// but its sales belong in each employee's totals.
+const LEADERBOARD_ONLY_SHOPS = [{ shopID: '1', name: '7-Mobility' }];
 const DEPT_LABOR = '21', DEPT_COMPONENTS = '12', DEPT_RUBBER = '18';
 const BATCH = 50;
 
@@ -293,12 +301,14 @@ const lineRevenue = l => parseFloat(l.calcSubtotal||0) - parseFloat(l.calcLineDi
 // Negative lines (returns) are kept so a refund reduces that person's total, and
 // zero-value lines still count toward Qty — both match how Lightspeed's Line Employee
 // report totals up, which is what these numbers get reconciled against.
-function aggregateEmployees(allLines, empNames) {
+function aggregateEmployees(allLines, empNames, shopID) {
   const empMap = {};
   allLines.forEach(line => {
     const rawID = line.employeeID;
     if (!rawID || rawID === '0') return;
-    const eid = REASSIGN_EMPLOYEE[rawID] || rawID;
+    const eid = rawID === EMP_ONLINE_SALES
+      ? (ONLINE_SALES_CREDIT[shopID] || ONLINE_SALES_CREDIT_DEFAULT)
+      : rawID;
     if (SKIP_EMPLOYEE_IDS.includes(eid)) return;
     if (!empMap[eid]) empMap[eid] = { employeeID: eid, name: empNames[eid] || `Emp ${eid}`, sales: 0, qty: 0, revenue: 0 };
     empMap[eid].sales++;
@@ -306,6 +316,16 @@ function aggregateEmployees(allLines, empNames) {
     empMap[eid].revenue += lineRevenue(line);
   });
   return Object.values(empMap).sort((a,b) => b.revenue - a.revenue);
+}
+
+// Sales from shops that carry employee credit but no goals (7-Mobility). Shaped like a
+// shop result so it can feed the leaderboard, but deliberately never rendered as a card.
+async function fetchLeaderboardOnlyShops(startDate, endDate, empNames) {
+  return Promise.all(LEADERBOARD_ONLY_SHOPS.map(async shop => {
+    const sales = await fetchSalesInRange(shop.shopID, startDate, endDate);
+    const lines = await fetchSaleLines(sales.map(s => s.saleID));
+    return { name: shop.name, shopID: shop.shopID, lineEmployees: aggregateEmployees(lines, empNames, shop.shopID) };
+  }));
 }
 
 // Roll the per-shop attribution up to one company-wide list. Hours are the employee's
@@ -400,13 +420,14 @@ async function fetchRangeData(startDate, endDate) {
     const filtered = await fetchSalesInRange(shop.shopID, startDate, endDate);
     const rev = saleRev(filtered), mar = saleMar(filtered);
     const allLines = await fetchSaleLines(filtered.map(s => s.saleID));
-    const lineEmployees = aggregateEmployees(allLines, empNames);
+    const lineEmployees = aggregateEmployees(allLines, empNames, shop.shopID);
     const lcr = await getLCR(allLines);
     return { name: shop.name, shopID: shop.shopID, goals, mtdRev: rev, ytdRev: rev, mtdMar: mar, ytdMar: mar, lcr, lineEmployees, daysLeft: 0 };
   }));
 
+  const extraShops = await fetchLeaderboardOnlyShops(startDate, endDate, empNames);
   return {
-    shops: shopResults, companyLeaderboard: buildCompanyLeaderboard(shopResults, hoursTotal),
+    shops: shopResults, companyLeaderboard: buildCompanyLeaderboard([...shopResults, ...extraShops], hoursTotal),
     rolloverByShop: {}, lastMonthResults: [], lastMonthLabel: '', lastMonthKey: '',
     fetchedAt: `${startDate} to ${endDate}`, daysLeft: 0, currentMonth: startMonth, isRange: true,
     rangeLabel: `${startDate} → ${endDate}`,
@@ -449,7 +470,8 @@ async function fetchAllData() {
     return processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, hoursMap, currentMonth, rolloverRev, rolloverMar);
   }));
 
-  const companyLeaderboard = buildCompanyLeaderboard(shopResults, hoursTotal);
+  const extraShops = await fetchLeaderboardOnlyShops(mtdStart, today, empNames);
+  const companyLeaderboard = buildCompanyLeaderboard([...shopResults, ...extraShops], hoursTotal);
 
   cachedData = {
     shops: shopResults, companyLeaderboard, rolloverByShop, lastMonthResults, lastMonthLabel, lastMonthKey,
@@ -483,14 +505,15 @@ async function buildSnapshotData(start, end, month, year, label, key) {
     ]);
     const mtdRev = saleRev(mtd), ytdRev = saleRev(ytd), mtdMar = saleMar(mtd), ytdMar = saleMar(ytd);
     const allLines = await fetchSaleLines(mtd.map(s => s.saleID));
-    const lineEmployees = aggregateEmployees(allLines, empNames);
+    const lineEmployees = aggregateEmployees(allLines, empNames, shop.shopID);
     const itemDepts = await getItemDepts(allLines);
     const weeks = buildWeeks(shop.shopID, year, month, goals, mtd, allLines, itemDepts, end, true);
     return { name: shop.name, shopID: shop.shopID, goals, mtdRev, ytdRev, mtdMar, ytdMar, lcr: lcrFrom(allLines, itemDepts), lineEmployees, weeks, daysLeft: 0 };
   }));
 
+  const extraShops = await fetchLeaderboardOnlyShops(start, end, empNames);
   return {
-    shops: shopResults, companyLeaderboard: buildCompanyLeaderboard(shopResults, hoursTotal),
+    shops: shopResults, companyLeaderboard: buildCompanyLeaderboard([...shopResults, ...extraShops], hoursTotal),
     rolloverByShop: {}, lastMonthResults: [], lastMonthLabel: '', lastMonthKey: '',
     fetchedAt: `Final · ${label}`, daysLeft: 0, currentMonth: month, isSnapshot: true, snapshotLabel: label,
   };
@@ -523,7 +546,7 @@ async function processShop(shop, mtdStart, ytdStart, today, daysLeft, empNames, 
   const mtdRev = saleRev(mtd), ytdRev = saleRev(ytd), mtdMar = saleMar(mtd), ytdMar = saleMar(ytd);
 
   const allLines = await fetchSaleLines(mtd.map(s => s.saleID));
-  const lineEmployees = aggregateEmployees(allLines, empNames).map(e => {
+  const lineEmployees = aggregateEmployees(allLines, empNames, shop.shopID).map(e => {
     const shopHrs = hoursMap[e.employeeID]?.[shop.shopID] || 0;
     return { ...e, hours: shopHrs, salesPerHour: shopHrs >= 1 ? e.revenue / shopHrs : 0 };
   });
