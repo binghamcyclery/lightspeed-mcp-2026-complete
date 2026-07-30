@@ -2,6 +2,7 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const CONFIG = {
   accountId: '35270',
@@ -112,6 +113,39 @@ const SKIP_EMPLOYEE_IDS = [
 // 7-Mobility is the employer program. It has no revenue goals and gets no shop card,
 // but its sales belong in each employee's totals.
 const LEADERBOARD_ONLY_SHOPS = [{ shopID: '1', name: '7-Mobility' }];
+
+// Salt Lake moved: the original location closed mid-2025 and the new one opened in
+// January 2026, so its 2025 figures describe a different store and can't be compared.
+const YOY_EXCLUDED_SHOPS = ['7'];
+
+// For forward projection, Sandy stands in for Salt Lake's missing 2025 history. The new
+// Salt Lake store is running at roughly Sandy's volume in 2026 (~$97k each in July),
+// whereas Salt Lake's own 2025 numbers come from the smaller original location. Opt in
+// via ?proxy=1 — the raw response is never silently substituted.
+const PROXY_SHOPS = {
+  '7': { source: '9', months: [6, 7, 8, 9, 10, 11, 12] },
+};
+
+// Fills a shop's gap months from its proxy source, tagging every month with where it came
+// from so the consumer can tell borrowed figures from real ones.
+function applyProxy(shops, mode) {
+  Object.entries(PROXY_SHOPS).forEach(([targetID, cfg]) => {
+    const target = shops[targetID], src = shops[cfg.source];
+    if (!target || !src) return;
+    const proxied = mode === 'full' ? [1,2,3,4,5,6,7,8,9,10,11,12] : cfg.months;
+    target.proxy = {
+      source: cfg.source,
+      sourceName: src.name,
+      proxiedMonths: proxied,
+      note: mode === 'full'
+        ? `All 12 months taken from ${src.name}.`
+        : `Months ${proxied[0]}–${proxied[proxied.length - 1]} taken from ${src.name}; months 1–${proxied[0] - 1} are ${target.name}'s own figures from its original, smaller location, so expect a step change at month ${proxied[0]}.`,
+      months: target.months.map(m => proxied.includes(m.month)
+        ? { ...src.months[m.month - 1], source: src.name }
+        : { ...m, source: 'actual' }),
+    };
+  });
+}
 const DEPT_LABOR = '21', DEPT_COMPONENTS = '12', DEPT_RUBBER = '18';
 const BATCH = 50;
 
@@ -140,6 +174,25 @@ try {
   if (fs.existsSync(SNAPSHOT_INDEX_FILE)) snapshotIndex = JSON.parse(fs.readFileSync(SNAPSHOT_INDEX_FILE, 'utf8'));
 } catch(e) { console.error('Snapshot index load error:', e.message); }
 
+// Prior-year monthly sales, cached to disk. A closed year never changes, so once it's
+// written we never re-fetch it. Railway's filesystem resets on redeploy, in which case
+// it just refetches once in the background.
+const CACHE_DIR = path.join(__dirname, 'cache');
+try {
+  if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+} catch(e) { console.error('Cache dir error:', e.message); }
+const monthlySalesCache = {};   // year -> { data, at }
+let monthlySalesLoading = null;
+// A finished year is immutable, so it caches indefinitely. The current year is still
+// accumulating, so it gets a short TTL instead of being memoized forever.
+const CURRENT_YEAR_TTL_MS = 60 * 60 * 1000;
+function cachedMonthly(year) {
+  const hit = monthlySalesCache[year];
+  if (!hit) return null;
+  if (year < parseInt(mtnToday().slice(0, 4), 10)) return hit.data;
+  return Date.now() - hit.at < CURRENT_YEAR_TTL_MS ? hit.data : null;
+}
+
 // Icons are inlined as data URIs rather than linked, so archived snapshots keep the
 // tab icon even when the HTML is opened outside this server.
 const dataURI = file => {
@@ -164,6 +217,24 @@ function isAuthenticated(req) {
   const cookie = req.headers.cookie || '';
   const match = cookie.match(/session=([^;]+)/);
   return match && sessions.has(match[1]);
+}
+
+// Separate, narrow auth for the JSON API. Intentionally shares nothing with the dashboard
+// password above: this grants no access to the dashboard, and a dashboard session grants
+// no access to this. Fails closed — an unset key means the endpoint is unreachable rather
+// than open. Set MONTHLY_SALES_API_KEY in Railway; it is read server-side only.
+const MONTHLY_SALES_API_KEY = process.env.MONTHLY_SALES_API_KEY || '';
+if (!MONTHLY_SALES_API_KEY) {
+  console.warn('MONTHLY_SALES_API_KEY is not set — /api/monthly-sales will reject every request.');
+}
+function hasValidApiKey(req) {
+  if (!MONTHLY_SALES_API_KEY) return false;
+  const provided = req.headers['x-api-key'];
+  if (typeof provided !== 'string') return false;
+  const a = Buffer.from(provided), b = Buffer.from(MONTHLY_SALES_API_KEY);
+  // Length is compared first because timingSafeEqual throws on a length mismatch. Key
+  // length is not secret; the contents are, and those get a constant-time comparison.
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 const LOGIN_PAGE = `<!DOCTYPE html>
@@ -326,6 +397,87 @@ async function fetchLeaderboardOnlyShops(startDate, endDate, empNames) {
     const lines = await fetchSaleLines(sales.map(s => s.saleID));
     return { name: shop.name, shopID: shop.shopID, lineEmployees: aggregateEmployees(lines, empNames, shop.shopID) };
   }));
+}
+
+// Revenue and margin for a whole year, bucketed by Mountain-local day and month, using
+// the same completeTime filtering as everything else. Days are kept so the dashboard can
+// compare like-for-like periods (Jul 1–27 vs Jul 1–27) instead of a partial month against
+// a full one, which would always read as a shortfall.
+const round2 = n => Math.round(n * 100) / 100;
+
+async function fetchMonthlySales(year) {
+  const shops = {};
+  for (const shop of SHOPS) {
+    const sales = await fetchSalesInRange(shop.shopID, `${year}-01-01`, `${year}-12-31`);
+    const buckets = Array.from({ length: 12 }, () => []);
+    const dayBuckets = {};
+    sales.forEach(s => {
+      const date = mtnDate(s.completeTime || s.createTime);
+      const monthIdx = parseInt(date.slice(5, 7), 10) - 1;
+      if (monthIdx < 0 || monthIdx > 11) return;
+      buckets[monthIdx].push(s);
+      (dayBuckets[date] = dayBuckets[date] || []).push(s);
+    });
+    const days = {};
+    Object.entries(dayBuckets).forEach(([date, list]) => {
+      days[date] = { revenue: round2(saleRev(list)), margin: round2(saleMar(list)) };
+    });
+    shops[shop.shopID] = {
+      name: shop.name,
+      comparable: !YOY_EXCLUDED_SHOPS.includes(shop.shopID),
+      months: buckets.map((list, i) => ({
+        month: i + 1, label: MONTH_LABELS[i],
+        revenue: round2(saleRev(list)), margin: round2(saleMar(list)), sales: list.length,
+      })),
+      days,
+    };
+  }
+  return { year, fetchedAt: new Date().toISOString(), shops };
+}
+
+const monthlyCacheFile = year => path.join(CACHE_DIR, `monthly-sales-${year}.json`);
+
+// Synchronous on purpose: a cache already on disk should show up on the very first
+// render, not a refresh cycle later.
+function loadMonthlyFromDisk(year) {
+  const hit = cachedMonthly(year);
+  if (hit) return hit;
+  try {
+    const file = monthlyCacheFile(year);
+    if (fs.existsSync(file)) {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      monthlySalesCache[year] = { data, at: Date.now() };
+      return data;
+    }
+  } catch(e) { console.error(`Monthly cache read error (${year}):`, e.message); }
+  return null;
+}
+
+async function getMonthlySales(year) {
+  const isClosedYear = year < parseInt(mtnToday().slice(0, 4), 10);
+  const hit = isClosedYear ? loadMonthlyFromDisk(year) : cachedMonthly(year);
+  if (hit) return hit;
+
+  await getToken();
+  const data = await fetchMonthlySales(year);
+  monthlySalesCache[year] = { data, at: Date.now() };
+  // Only a finished year is safe to persist; the current one is still moving.
+  if (isClosedYear) {
+    try { fs.writeFileSync(monthlyCacheFile(year), JSON.stringify(data)); }
+    catch(e) { console.error(`Monthly cache write error (${year}):`, e.message); }
+  }
+  return data;
+}
+
+// Warm the cache without blocking a dashboard render — a full year across three shops
+// takes minutes on a cold start, so the first refresh simply renders without YoY.
+function primeMonthlySales(year) {
+  if (cachedMonthly(year) || monthlySalesLoading) return;
+  console.log(`Priming ${year} monthly sales in background...`);
+  monthlySalesLoading = getMonthlySales(year)
+    .then(() => console.log(`${year} monthly sales ready.`))
+    .catch(e => console.error(`Monthly sales prime failed (${year}):`, e.message))
+    .finally(() => { monthlySalesLoading = null; });
 }
 
 // Roll the per-shop attribution up to one company-wide list. Hours are the employee's
@@ -889,6 +1041,54 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Monthly revenue/margin per shop, pulled from Lightspeed and cached on disk.
+  //   ?year=2025   defaults to last year
+  //   ?days=1      include the day-level breakdown
+  //   ?proxy=1     add a `proxy` series filling Salt Lake's gap months from Sandy
+  //   ?proxy=full  take all 12 of Salt Lake's months from Sandy
+  //
+  // Authenticated by X-API-Key only — deliberately NOT the dashboard's session cookie, so
+  // a leaked key cannot reach the dashboard and a dashboard login cannot reach this data.
+  // Declared before the session gate for that reason. No CORS headers are sent, so a
+  // browser cannot call this cross-origin; the key belongs on a server, never in a page.
+  if (url === '/api/monthly-sales') {
+    if (!hasValidApiKey(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ error: 'valid X-API-Key header required' }));
+      return;
+    }
+    const thisYear = parseInt(mtnToday().slice(0, 4), 10);
+    const year = parseInt(urlObj.searchParams.get('year') || (thisYear - 1), 10);
+    if (!Number.isInteger(year) || year < 2010 || year > thisYear) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: `year must be between 2010 and ${thisYear}` }));
+      return;
+    }
+    try {
+      const data = await getMonthlySales(year);
+      const includeDays = urlObj.searchParams.get('days') === '1';
+      const proxyMode = urlObj.searchParams.get('proxy');
+      // Shallow copies — applyProxy adds a key, and mutating the cached objects would
+      // leak the proxy series into later unproxied responses.
+      const shops = {};
+      Object.entries(data.shops).forEach(([shopID, s]) => {
+        shops[shopID] = { name: s.name, comparable: s.comparable, months: s.months };
+        if (includeDays) shops[shopID].days = s.days;
+      });
+      if (proxyMode) applyProxy(shops, proxyMode);
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({
+        year: data.year, fetchedAt: data.fetchedAt, cached: !!cachedMonthly(year),
+        yoyExcluded: YOY_EXCLUDED_SHOPS, shops,
+      }, null, 2));
+    } catch(err) {
+      console.error('monthly-sales error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
   // Auth check (skip for snapshots served statically)
   if (!isAuthenticated(req)) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -972,6 +1172,8 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(CONFIG.port, () => {
   console.log(`Dashboard running at http://localhost:${CONFIG.port}`);
+  // Warm the prior year so the first API call doesn't pay for a full-year fetch.
+  primeMonthlySales(parseInt(mtnToday().slice(0, 4), 10) - 1);
   fetchAllData().catch(console.error);
 });
 
