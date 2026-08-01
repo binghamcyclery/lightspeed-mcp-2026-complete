@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Bingham Cyclery — July 2026</title>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,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"><link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;padding:20px}</style>
+</head>
+<body>
+<div style="max-width:960px;margin:0 auto">
+  <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:12px 20px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="font-size:17px;font-weight:500;color:#0f172a">Bingham Cyclery</div>
+        <a href="/" style="font-size:11px;color:#fff;text-decoration:none;padding:3px 10px;border-radius:10px;background:#0f172a;white-space:nowrap">🔴 Live — August 2026</a>
+        <a href="/snapshots/may-2026" style="font-size:11px;color:#64748b;text-decoration:none;padding:3px 10px;border-radius:10px;background:#f1f5f9;border:0.5px solid #e2e8f0;white-space:nowrap">📅 May 2026</a><a href="/snapshots/june-2026" style="font-size:11px;color:#64748b;text-decoration:none;padding:3px 10px;border-radius:10px;background:#f1f5f9;border:0.5px solid #e2e8f0;white-space:nowrap">📅 June 2026</a>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#94a3b8">📸 July 2026</div>
+        
+      </div>
+    </div>
+    <form method="GET" action="/range" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:0.5px solid #f1f5f9">
+      <span style="font-size:11px;color:#94a3b8;white-space:nowrap">📊 Custom range:</span>
+      <input type="date" name="from" value="2026-08-01" style="padding:4px 8px;border:0.5px solid #e2e8f0;border-radius:6px;font-size:12px;color:#0f172a">
+      <span style="font-size:11px;color:#94a3b8">to</span>
+      <input type="date" name="to" value="2026-08-01" style="padding:4px 8px;border:0.5px solid #e2e8f0;border-radius:6px;font-size:12px;color:#0f172a">
+      <button type="submit" style="padding:4px 14px;background:#0f172a;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">View →</button>
+      
+    </form>
+  </div>
+  
+  <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:16px 20px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">July 2026 Final</div>
+    
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px">
+      <div style="background:#fef2f2;border:0.5px solid #fecaca;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Period Revenue</div>
+        <div style="font-size:22px;font-weight:500;color:#dc2626">$390,026</div>
+        <div style="font-size:11px;color:#64748b">of $515,000 goal · 76%</div>
+        <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:76%;background:#dc2626;border-radius:3px"></div></div>
+      </div>
+      <div style="background:#fef2f2;border:0.5px solid #fecaca;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Period Margin</div>
+        <div style="font-size:22px;font-weight:500;color:#dc2626">$162,202</div>
+        <div style="font-size:11px;color:#64748b">of $216,300 goal · 75%</div>
+        <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:75%;background:#dc2626;border-radius:3px"></div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      <div style="background:#fefce8;border:0.5px solid #fef08a;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company YTD Revenue</div>
+        <div style="font-size:22px;font-weight:500;color:#ca8a04">$1,911,075</div>
+        <div style="font-size:11px;color:#64748b">of $2,055,000 YTD goal · 93% · Annual: $3,480,000</div>
+        <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:93%;background:#ca8a04;border-radius:3px"></div></div>
+      </div>
+      <div style="background:#fefce8;border:0.5px solid #fef08a;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Company YTD Margin</div>
+        <div style="font-size:22px;font-weight:500;color:#ca8a04">$799,143</div>
+        <div style="font-size:11px;color:#64748b">of $863,100 YTD goal · 93% · Annual: $1,461,600</div>
+        <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:93%;background:#ca8a04;border-radius:3px"></div></div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Company By Week</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:420px">
+      <thead><tr style="background:#f8fafc">
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Week</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Dates</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Margin</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">LCR</th>
+      </tr></thead>
+      <tbody><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 1</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/1–7/5</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#ca8a04;text-align:right">$83,703<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $86,821</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#ca8a04;text-align:right">$33,280<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $36,464</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$8,861<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $45,345</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 2</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/6–7/12</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$85,986<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $115,789</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$35,487<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $48,631</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$14,934<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $60,391</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 3</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/13–7/19</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$85,066<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $115,789</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$35,514<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $48,631</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$12,889<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $60,391</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 4</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/20–7/26</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$76,678<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $115,789</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$33,604<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $48,631</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$13,608<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $60,391</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 5</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/27–7/31</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$58,592<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $80,811</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$24,317<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $33,940</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$9,383<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $42,038</span></td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 12px">By Location — YTD</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="flex:1;min-width:150px;background:#fefce8;border:0.5px solid #fef08a;border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Park City</div>
+      <div style="font-size:15px;font-weight:500;color:#ca8a04">$771,457</div>
+      <div style="font-size:11px;color:#64748b">YTD Rev · Goal $816,000 · 95%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:95%;background:#ca8a04;border-radius:3px"></div></div>
+      <div style="font-size:13px;font-weight:500;color:#ca8a04;margin-top:4px">$312,297</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal $342,720 · 91%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:91%;background:#ca8a04;border-radius:3px"></div></div>
+    </div>
+    <div style="flex:1;min-width:150px;background:#fefce8;border:0.5px solid #fef08a;border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Salt Lake City</div>
+      <div style="font-size:15px;font-weight:500;color:#ca8a04">$550,618</div>
+      <div style="font-size:11px;color:#64748b">YTD Rev · Goal $594,000 · 93%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:93%;background:#ca8a04;border-radius:3px"></div></div>
+      <div style="font-size:13px;font-weight:500;color:#ca8a04;margin-top:4px">$232,685</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal $249,480 · 93%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:93%;background:#ca8a04;border-radius:3px"></div></div>
+    </div>
+    <div style="flex:1;min-width:150px;background:#fefce8;border:0.5px solid #fef08a;border-radius:8px;padding:10px 14px">
+      <div style="font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Sandy</div>
+      <div style="font-size:15px;font-weight:500;color:#ca8a04">$589,001</div>
+      <div style="font-size:11px;color:#64748b">YTD Rev · Goal $645,000 · 91%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:91%;background:#ca8a04;border-radius:3px"></div></div>
+      <div style="font-size:13px;font-weight:500;color:#ca8a04;margin-top:4px">$254,161</div>
+      <div style="font-size:11px;color:#64748b">YTD Margin · Goal $270,900 · 94%</div>
+      <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:94%;background:#ca8a04;border-radius:3px"></div></div>
+    </div></div>
+    
+  </div>
+  
+    <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="font-size:17px;font-weight:500;color:#0f172a">Park City</div>
+        
+        
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Revenue</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$162,743</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $225,000 · 72%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:72%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Margin</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$67,826</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $94,500 · 72%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:72%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">LCR MTD</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$20,923</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $123,000 · 17%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:17%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+      </div>
+      <div style="margin-top:14px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">By Week</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:420px">
+      <thead><tr style="background:#f8fafc">
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Week</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Dates</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Margin</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">LCR</th>
+      </tr></thead>
+      <tbody><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 1</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/1–7/5</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$29,982<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $39,500</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$12,795<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,590</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,236<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,594</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 2</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/6–7/12</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$27,347<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $50,832</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$12,375<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,349</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$5,139<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $27,788</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 3</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/13–7/19</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$28,261<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $50,832</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$11,364<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,349</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,925<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $27,788</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 4</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/20–7/26</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$51,514<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $50,832</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#ca8a04;text-align:right">$21,190<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,349</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$5,006<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $27,788</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 5</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/27–7/31</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$25,639<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $33,003</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$10,103<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $13,861</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,618<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $18,042</span></td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+      
+    </div>
+    <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="font-size:17px;font-weight:500;color:#0f172a">Salt Lake City</div>
+        
+        
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Revenue</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$120,435</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $160,000 · 75%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:75%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Margin</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$48,418</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $67,200 · 72%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:72%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">LCR MTD</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$17,885</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $74,057 · 24%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:24%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+      </div>
+      <div style="margin-top:14px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">By Week</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:420px">
+      <thead><tr style="background:#f8fafc">
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Week</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Dates</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Margin</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">LCR</th>
+      </tr></thead>
+      <tbody><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 1</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/1–7/5</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$27,205<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $26,108</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#ca8a04;text-align:right">$10,180<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $10,965</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$2,383<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $12,084</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 2</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/6–7/12</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#ca8a04;text-align:right">$34,725<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $35,838</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$12,580<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $15,052</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$4,640<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,588</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 3</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/13–7/19</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$23,736<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $35,838</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$10,239<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $15,052</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$4,164<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,588</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 4</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/20–7/26</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$11,767<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $35,838</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$5,917<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $15,052</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,974<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,588</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 5</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/27–7/31</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$23,003<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $26,377</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$9,502<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $11,078</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$2,724<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $12,209</span></td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+      
+    </div>
+    <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="font-size:17px;font-weight:500;color:#0f172a">Sandy</div>
+        
+        
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Revenue</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$106,848</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $130,000 · 82%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:82%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">Period Margin</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$45,957</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $54,600 · 84%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:84%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1px">
+      <div style="font-size:11px;color:#94a3b8">LCR MTD</div>
+      
+    </div>
+    <div style="font-size:19px;font-weight:500;color:#dc2626">$20,867</div>
+    <div style="font-size:11px;color:#94a3b8">Goal $71,500 · 29%</div>
+    <div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:3px 0 6px"><div style="height:100%;width:29%;background:#dc2626;border-radius:3px"></div></div>
+  </div>
+      </div>
+      <div style="margin-top:14px">
+    <div style="font-size:11px;font-weight:500;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">By Week</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:420px">
+      <thead><tr style="background:#f8fafc">
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Week</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:left">Dates</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">Margin</th>
+        <th style="padding:6px 8px;font-size:10px;color:#94a3b8;font-weight:500;text-align:right">LCR</th>
+      </tr></thead>
+      <tbody><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 1</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/1–7/5</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$26,517<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,213</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$10,305<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $8,909</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,243<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $11,667</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 2</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/6–7/12</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$23,914<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $29,119</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$10,532<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $12,230</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$5,155<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,015</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 3</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/13–7/19</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$33,069<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $29,119</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#16a34a;text-align:right">$13,911<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $12,230</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$4,800<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,015</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 4</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/20–7/26</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$13,397<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $29,119</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$6,497<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $12,230</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$4,628<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $16,015</span></td>
+    </tr><tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:6px 8px;font-size:12px;color:#0f172a;white-space:nowrap">Week 5</td>
+      <td style="padding:6px 8px;font-size:11px;color:#94a3b8;white-space:nowrap">7/27–7/31</td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$9,950<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $21,431</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$4,713<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $9,001</span></td>
+      <td style="padding:6px 8px;font-size:12px;font-weight:500;color:#dc2626;text-align:right">$3,040<span style="font-size:10px;color:#94a3b8;font-weight:400"> / $11,787</span></td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+      
+    </div>
+  <div style="background:#fff;border:0.5px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:500;color:#0f172a;margin-bottom:14px">Company Leaderboard — July 2026</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#f8fafc">
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Employee</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:left">Location</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">Revenue</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center" title="Units sold — matches the Qty column in Lightspeed's Line Employee report">Qty</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Lines</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:center">Hours</th>
+        <th style="padding:7px 10px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right">$/hr</th>
+      </tr></thead>
+      <tbody>
+    <tr style="border-top:0.5px solid #f1f5f9;background:#fafbff">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a">🥇 1. Tylar Furr</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$74,023</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">349</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">257</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">172.5h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$429/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9;background:#fafbff">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a">🥈 2. Dave Akin</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$47,654</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">278</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">238</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">190.1h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$251/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9;background:#fafbff">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a">🥉 3. Myles Feuer</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$37,202</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">279</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">268</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">164.4h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$226/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 4. Michelle Schmid</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City · Salt Lake City · Sandy · 7-Mobility</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$29,964</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">243</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">220</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">217.2h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$138/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 5. River August</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$27,397</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">139</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">125</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">156.0h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$176/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 6. Patrick Jones</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$26,409</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">177</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">155</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">106.6h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$248/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 7. Angela Wright</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City · 7-Mobility</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$25,596</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">29</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">24</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">—</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">—</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 8. Sarah Rumpsa</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$25,328</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">147</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">135</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">97.1h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$261/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 9. Silas Barrett</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$13,220</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">250</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">205</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">137.7h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$96/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 10. Jason Nguyen</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City · Sandy · 7-Mobility</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$11,795</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">119</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">104</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">65.6h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$180/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 11. Alexander Akin</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$11,087</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">119</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">104</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">112.7h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$98/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 12. Franchesca Lopez</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City · Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$10,209</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">74</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">63</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">63.7h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$160/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 13. Niruma Maharjan</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$8,656</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">67</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">65</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">104.4h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$83/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 14. Christopher Stephen</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$7,487</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">93</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">86</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">84.8h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$88/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 15. Silver Poulson</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$6,667</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">177</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">149</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">143.3h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$47/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 16. Jarrod Doherty</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$5,999</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">150</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">137</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">138.9h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$43/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 17. Mike Merriman</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City · Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$5,222</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">142</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">135</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">150.6h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$35/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 18. James E. Gardner</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$4,968</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">159</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">133</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">83.3h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$60/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 19. Spencer Wiehe</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$3,842</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">43</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">37</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">85.1h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$45/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 20. Alex Lopez</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$3,596</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">98</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">92</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">120.1h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$30/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 21. Ryan Anderson</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$2,284</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">48</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">48</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">52.3h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$44/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 22. Isaac Young</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$1,746</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">103</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">96</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">60.9h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$29/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 23. Kaden Affleck</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$1,670</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">2</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">2</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">—</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">—</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 24. Jack Creed</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$1,549</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">31</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">28</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">26.4h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$59/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 25. John Emery</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$1,271</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">23</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">23</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">3.9h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$325/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 26. Graden Record</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$509</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">14</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">14</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">38.7h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$13/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 27. Sam Broadbent</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$425</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">39</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">34</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">50.8h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$8/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 28. Jeff Meskey</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$219</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">8</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">8</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">64.2h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$3/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 29. James Gardner</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$190</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">6</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">6</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">—</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">—</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 30. Aiden White</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Park City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$80</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">34</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">34</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">100.1h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$1/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 31. Anthony Parrish</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$25</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">4</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">4</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">15.8h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$2/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 32. Michael Ward</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$12</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">1</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">1</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">—</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">—</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 33. Collin Shepherd</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Sandy</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#0f172a;text-align:right">$4</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">2</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">2</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">68.0h</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">$0/hr</td>
+    </tr>
+    <tr style="border-top:0.5px solid #f1f5f9">
+      <td style="padding:8px 10px;font-size:13px;color:#0f172a"> 34. Eva Thornton</td>
+      <td style="padding:8px 10px;font-size:11px;color:#94a3b8">Salt Lake City</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:500;color:#dc2626;text-align:right">$-53</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">1</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">5</td>
+      <td style="padding:8px 10px;font-size:12px;color:#64748b;text-align:center">—</td>
+      <td style="padding:8px 10px;font-size:13px;color:#185FA5;text-align:right;font-weight:500">—</td>
+    </tr></tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
